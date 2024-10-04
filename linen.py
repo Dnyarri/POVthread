@@ -29,7 +29,7 @@ __license__ = 'unlicense'
 __version__ = '1.10.4.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 from time import ctime, time
 from tkinter import BOTH, Tk, filedialog
