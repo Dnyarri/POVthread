@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang='en-US'>
+<head>
+    <meta charset='utf-8' />
+    <meta name='author' content='Ilya Razmanov' />
+    <title>POV Mosaic options list</title>
+    <style>
+        body {
+            background-color: #f5f5dc;
+            margin: 16pt;
+        }
+        h1 {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #000000;
+            font-size: 16pt;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: thin solid rgba(0, 0, 0, 0.5);
+        }
+        h2 {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #000000;
+            font-size: 14pt;
+            text-align: left;
+            padding: 0px 24pt;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        p {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #000000;
+            font-size: 12pt;
+            text-align: left;
+        }
+        .pre {
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre;
+            break-inside: avoid;
+            border: thin solid rgba(0, 0, 0, 0.3);
+            margin: 0px 0pt;
+            padding: 0px 4pt;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+        }
+        .strong {
+            font-weight: bold;
+            letter-spacing: 0.2em;
+        }
+        .em {
+            font-style: italic;
+            color: #009900;
+        }
+    </style>
+</head>
+<body>
+    <h1>Options of POV&nbsp;Thread programs</h1>
+    <h2>Description</h2>
+    <p><a href='https://github.com/Dnyarri/POVmosaic'><span class='strong'>POVRay&nbsp;Thread</span>&nbsp;programs</a> is a set of Python programs for conversion of regular 2D images into a set of solid 3D objects in <a href='https://www.povray.org'>POVRay</a> format, simulating canvas or cross stitching. Every pixel of original image is converted into a 3D object, having the same base color as original pixel, and form of linen type canvas node or a regular cross stitch.</p>
+    <p>In general, any <span class='strong'>POV&nbsp;Thread</span> program exports some basic scene, as simple as possible, yet providing reconfiguring option set within the scene .pov file. By editing obtained .pov file you can easily change object surface or add some distortion to break uniform pattern.</p>
+    <p>Options are summarized and detailed below.</p>
+    <h2>Introduction</h2>
+    <p>It is important to understand that in <span class='strong'>POV&nbsp;Thread</span> output X and Y axes mimic Photoshop, that is, X is horizontal, Y is vertical, and origin (zero) is top left corner. Z axis point toward viewer.</p>
+    <p>To avoid possible confusions with word "object" which is internally reserved here and there for something (for example, in POVRay SDL itself), all elementary objects in scene file are called <i>"thingies"</i>, and their union - <i>"thething"</i>.</p>
+    <h2>POVRay header</h2>
+    <p>Exported POV file header contain minimal information required by POVRay, like explicitly setting common rendering options. Meaning of settings is well described in POVRay documentation.</p>
+    <h2>Predefined objects, properties and modifiers thereof</h2>
+    <p><span class='pre strong'>Surface lab</span> section defines thingie surface propertied - shiny or dull (finish), and texture. Currently a couple of finishes are defined, then go some simple texture examples. They are easy to switch below by editing strings like <span class='pre'>#declare thingie_normal = thingie_normal_<span class='em'>n</span></span> - simply change <span class='em'>n</span> value. Surely, specifying any regular POVRay finish and texture is also possible.</p>
+    <p><span class='pre strong'>Complex texture normal lab</span> section contains an example of one complex layered texture normal. For final texture normal <span class='pre'>f4</span> is used, but you can change it to intermediate <span class='pre'>f1 - f4</span> to see how the texture is built, and then build something better yourself.</p>
+    <h2>Thingies facility</h2>
+    <p>Contains the only thingie base object - torus - and its numerous modifiers. First, two most important are <span class='pre'>t_base</span> and <span class='pre'>t_width</span>. Initially, thread cross-section is round with <span class='pre'>t_base</span> radius, then its width may be expanded horizontally with <span class='pre'>t_width</span> coefficient.</p>
+    <p><span class='pre'>#declare thingie_finish = thingie_finish_1</span> and the like are switches for predefined finishes and normals. Simply choose, which one of them will be set as actual <span class='pre'>thingie_finish</span> and <span class='pre'>thingie_normal</span> correspondingly.</p>
+    <h2>Space canvas Distortion lab</h2>
+    <p>To break too uniform pattern appearance, thingies get distorted in some way. Distortions depend on pseudo-random Perlin noise pattern, arguments in this sections like <span class='pre'>scale_rnd</span> define the distortion intensity, while <span class='pre'>scl_pat</span> set characteristic noise pattern size, in patterns per image. Remember that values like <span class='pre'>scale_rnd</span> are additive, sometimes negative values are best (for example, you may need to decrease thingie size to give more room for thingie position displacement).</p>
+    <h2>Distortion functions</h2>
+    <p>Defines the nature of distortion function, used for distortions controlled as described above. Currently function looks like f(x, y, rand), receiving arguments from every thingie during it's calculation. Currently only thingie x and y positions are used, and third argument is replaced with constant, but random per thingie value is still generated and may be used, if you change the function. Thingie x and y coordinate values (normalized to unit size rectangle) are used to generate Perlin noise value for current thingie. Perlin noise was chosen over regular random due to its structure, providing more realistic image pattern distortions.</p>
+    <h2>Global stuff</h2>
+    <p>After thingie and per-thingie stuff some global stuff is specified, like camera, light etc.</p>
+    <h2>Presets</h2>
+    <p><span class='pre strong'>// #include "preset.inc"</span> Obviously, you can override any setting above by including it into <span class='pre'>"preset.inc"</span> file (include is commented out by default). There are sample preset files in the project, containing descriptions of additional thingie geometry and scene settings. Current presets include alternative isosurface thingies which provide much more detailed surfaces geometry but apparently are much slower to render. Keep in mind that isosurface details are only visible on large scale renderings, using isosurfaces for small renderings only takes time for nothing. Using external presets simplifies tweaking complex settings when trying different scene variants: instead of editing/undoing/redoing numerous changes in a main scene file, you may simply have a set of presets and switch them with one line.</p>
+    <p>This is the end of description of <span class='strong'>POV&nbsp;Thread</span> programs settings you are supposed to know.</p>
+    <h2>Addendum: Prerequisites</h2>
+    <p><span class='pre strong'><a href='https://gitlab.com/drj11/pypng'>PyPNG</a></span> compact Python PNG I/O module download.</p>
+    <p><span class='pre strong'><a href='https://www.povray.org/download/'>POVRay for Windows</a></span> official download.</p>
+    <p><span class='pre strong'><a href='http://megapov.inetart.net/povrayunofficial_mac/finalpov.html'>POVRay for Mac</a></span> unofficial download.</p>
+    <p style='text-align: center; font-size: 10pt;'>&copy; 2024 <a href="mailto:ilyarazmanov@gmail.com">Ilya Razmanov</a></p>
+</body>
+</html>
