@@ -26,7 +26,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.10.4.1'
+__version__ = '1.10.4.2'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -257,8 +257,8 @@ resultfile.writelines(
         '  look_at <0.0, 0.0, 0.0>\n',
         '}\n\n',
         # Light {#aaaa00, 2}
-        'light_source{0*x\n  color rgb <1.1, 1.0, 1.0>\n//  area_light <1, 0, 0>, <0, 1, 0>, 5, 5 circular orient area_illumination on\n  translate <-4, -3, 2>\n}\n\n',
-        'light_source{0*x\n  color rgb <0.9, 1.0, 1.0>\n//  area_light <1, 0, 0>, <0, 1, 0>, 5, 5 circular orient area_illumination on\n  translate <1, 2, 3>\n}\n\n',
+        'light_source{0*x\n  color rgb <1.1, 1.0, 1.0>\n//  area_light <0.5, 0, 0>, <0, 0.5, 0>, 5, 5 circular orient area_illumination on\n  translate <-4, -3, 2>\n}\n\n',
+        'light_source{0*x\n  color rgb <0.9, 1.0, 1.0>\n//  area_light <0.5, 0, 0>, <0, 0.5, 0>, 5, 5 circular orient area_illumination on\n  translate <1, -2, 3>\n}\n\n',
         '\n/*  ----------------------------------------------\n    |  Insert preset to override settings above  |\n    ----------------------------------------------  */\n\n',
         '// #include "preset.inc"    // Set path and name of your file related to scene file\n\n',
         # Main object start {#ffaa00,0}
