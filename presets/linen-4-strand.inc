@@ -17,7 +17,8 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
 #include "functions.inc"
 
 #local R1 = 0.2;    // Strand thickness.
-#local R2 = 0.3;    // Overall thread thickness. Avoid > 0.3 or increase contained_by box size below.
+#local R2 = 0.4;    /* Overall thread thickness.
+                         Increasing may require subsequent increase of contained_by box size below. */
 #local R3 = 2.0;    // Torus major radius.
 #local Strands = 4; // Strand number.
 
@@ -31,10 +32,10 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
 #local thread = isosurface {
    function {F1(f_r(x,y,z)-R3, y, f_th(x,y,z))}
         max_gradient 2.3
-        contained_by {box {<-2.5, -0.5, -0>, <2.5, 0.5, 2.5>}}
+        contained_by {box {<-2.5, -1, -0>, <2.5, 1, 3>}}
 }
 
-#declare thingie = object {thread scale <0.5, 0.7, 0.7>}  /* This is a good place 
+#declare thingie = object {thread scale <0.5, 0.5, 0.5>}  /* This is a good place 
 to transform your object to fit {#880000, 0} */
 
 #declare thingie_normal = normal {

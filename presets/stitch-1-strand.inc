@@ -2,7 +2,7 @@
 POVRay include file
 Description: Preset file for scene generated with stitch.py
 
-    Isosurface like 2-strands thread.
+    Isosurface like "cotton pearl" thread.
     Highly detailed but extremely slow to render.
     Details require large rendering with high antialiaising to be seen in full.
 
@@ -16,13 +16,13 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
 
 #include "functions.inc"
 
-#local R1 = 0.2;    // Strand thickness.
-#local R2 = 0.4;    /* Overall thread thickness.
+#local R1 = 0.22;   // Strand thickness.
+#local R2 = 0.7;    /* Overall thread thickness.
                          Increasing may require subsequent increase of contained_by box size below. */
 #local R3 = 2.0;    // Torus major radius.
-#local Strands = 2; // Strand number.
+#local Strands = 1; // Strand number.
 
-#local Turns = 8;   /* Number of helix turns in the loop.
+#local Turns = 14;   /* Number of helix turns in the loop.
                          Turns*Strands should be an integer to avoid a discontinuity  */
 
 #local F1 = function {
@@ -32,19 +32,17 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
 #local thread = isosurface {
    function {F1(f_r(x,y,z)-R3, y, f_th(x,y,z))}
         max_gradient 2.3
-        contained_by {box {<-3, -0.75, -0>, <3, 0.75, 3>}}
+        contained_by {box {<-3, -0.75, -1>, <3, 0.75, 3>}}
 }
 
-#declare thingie = object {thread scale <0.5, 0.5, 0.5>}  /* This is a good place 
+#declare thingie = object {thread scale <0.22, 0.22, 0.22>}  /* This is a good place 
 to transform your object to fit {#880000, 0} */
 
 #declare thingie_normal = normal {
     function{f_noise_generator(x, 64*y, z, 3)} // 3 is type of noise_generator for Perlin noise {#000088, 5}
     slope_map {  // [Input, <Height, Slope>]  {#006688, 3}
-        [0      <0,     0.5>]
-        [0.5    <0.2,   0.0>]
-        [1      <0,     0.5>]
+        [0      <0, 1.0>]
+        [0.5    <1, 0.0>]
+        [1      <0, 1.0>]
     }
   rotate <0, 0, -17>}
-
-#declare thingie_finish = finish {phong 0.1 phong_size 1} // Dull, good color representation {#888800, 0}

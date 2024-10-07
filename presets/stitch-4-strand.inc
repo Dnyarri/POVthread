@@ -16,11 +16,11 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
 
 #include "functions.inc"
 
-#local R1 = 0.2;    // Strand thickness.
-#local R2 = 0.4;    /* Overall thread thickness.
+#local R1 = 0.1;    // Strand thickness.
+#local R2 = 0.5;    /* Overall thread thickness.
                          Increasing may require subsequent increase of contained_by box size below. */
 #local R3 = 2.0;    // Torus major radius.
-#local Strands = 2; // Strand number.
+#local Strands = 4; // Strand number.
 
 #local Turns = 8;   /* Number of helix turns in the loop.
                          Turns*Strands should be an integer to avoid a discontinuity  */
@@ -35,7 +35,7 @@ Author: Ilya Razmanov, based on "Isosurface Tutorial" by Mike Williams
         contained_by {box {<-3, -0.75, -0>, <3, 0.75, 3>}}
 }
 
-#declare thingie = object {thread scale <0.5, 0.5, 0.5>}  /* This is a good place 
+#declare thingie = object {thread scale <0.25, 0.25, 0.25>}  /* This is a good place 
 to transform your object to fit {#880000, 0} */
 
 #declare thingie_normal = normal {
