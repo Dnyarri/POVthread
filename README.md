@@ -8,6 +8,7 @@ Python utilities for conversion of bitmap image (in PNG format) to some sort of 
 
 - **linen** - creates an object, simulating canvas, colored after source image (taffeta, print on canvas, and the like).
 - **stitch** - simulates common cross stitching embroidery appearance.
+- **averager** - an accessory for preprocessing source PNG files. Averages colors in RGB PNG within linear or squarish areas between contrast edges, providing color reduction somewhat similar to used in real cross stitch.
 
 ![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png)
 
