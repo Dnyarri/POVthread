@@ -13,6 +13,7 @@ History:
 24.10.14.0  Initial version of filter template.
 24.10.17.2  GUI for "Averager" v. 24.10.15.1 finished.
 24.10.17.3  Linked all includes to standalone version for distribution.
+24.10.21.1  UI states improved.
 
 '''
 
@@ -20,7 +21,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '24.10.17.3'
+__version__ = '24.10.21.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -223,10 +224,12 @@ def GetSource():  # Opening source image and redefining other controls state
     info01.config(state='normal')
     info02.config(state='normal')
     # enabling "Filter" button
-    butt02.config(state='normal')
+    butt02.config(state='normal', cursor='hand2')
+    # disabling "Save as..." button from previous sessions, if any
+    butt98.config(state='disabled', cursor='arrow')
     # enabling zoom
     label_zoom.config(state='normal')
-    butt_plus.config(state='normal')
+    butt_plus.config(state='normal', cursor='hand2')
     # updating zoom factor display
     label_zoom.config(text=f'Zoom {zoom_factor}:1')
 
@@ -242,7 +245,7 @@ def RunFilter():  # Filtering image, saving as temporary file, and previewing te
     preview = preview.zoom(zoom_factor, zoom_factor)
     zanyato.config(text='Result', image=preview, compound='top')
     # enabling "Save as..." button
-    butt03.config(state='normal')
+    butt98.config(state='normal', cursor='hand2')
 
 
 def SaveAs():  # "Save as..." function - simply copies temporary file above to user-selected location
@@ -260,7 +263,7 @@ def SaveAs():  # "Save as..." function - simply copies temporary file above to u
 
 def zoomIn():
     global zoom_factor
-    zoom_factor = min(zoom_factor + 1, 3)
+    zoom_factor = min(zoom_factor + 1, 3)  # max zoom 3
     global preview
     preview = PhotoImage(file=sourcefilename)
     preview = preview.zoom(zoom_factor, zoom_factor)
@@ -268,16 +271,16 @@ def zoomIn():
     # updating zoom factor display
     label_zoom.config(text=f'Zoom {zoom_factor}:1')
     # reenabling +/- buttons
-    butt_minus.config(state='normal')
-    if zoom_factor == 3:
-        butt_plus.config(state='disabled')
+    butt_minus.config(state='normal', cursor='hand2')
+    if zoom_factor == 3:  # max zoom 3
+        butt_plus.config(state='disabled', cursor='arrow')
     else:
-        butt_plus.config(state='normal')
+        butt_plus.config(state='normal', cursor='hand2')
 
 
 def zoomOut():
     global zoom_factor
-    zoom_factor = max(zoom_factor - 1, 1)
+    zoom_factor = max(zoom_factor - 1, 1)  # min zoom 1
     global preview
     preview = PhotoImage(file=sourcefilename)
     preview = preview.zoom(zoom_factor, zoom_factor)
@@ -285,11 +288,11 @@ def zoomOut():
     # updating zoom factor display
     label_zoom.config(text=f'Zoom {zoom_factor}:1')
     # reenabling +/- buttons
-    butt_plus.config(state='normal')
-    if zoom_factor == 1:
-        butt_minus.config(state='disabled')
+    butt_plus.config(state='normal', cursor='hand2')
+    if zoom_factor == 1:  # min zoom 1
+        butt_minus.config(state='disabled', cursor='arrow')
     else:
-        butt_minus.config(state='normal')
+        butt_minus.config(state='normal', cursor='hand2')
 
 
 # ╔═════════════════════════════╗
@@ -326,11 +329,11 @@ ini_threshold_y = IntVar(value=8)
 spin02 = Spinbox(frame_left, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled')
 spin02.pack(side='top', padx=4, pady=[0, 2], fill='both')
 
-butt02 = Button(frame_left, text='Filter', font=('arial', 16), cursor='hand2', justify='center', state='disabled', command=RunFilter)
+butt02 = Button(frame_left, text='Filter', font=('arial', 16), cursor='arrow', justify='center', state='disabled', command=RunFilter)
 butt02.pack(side='top', padx=4, pady=2, fill='both')
 
-butt03 = Button(frame_left, text='Save as...', font=('arial', 16), cursor='hand2', justify='center', state='disabled', command=SaveAs)
-butt03.pack(side='top', padx=4, pady=[10, 2], fill='both')
+butt98 = Button(frame_left, text='Save as...', font=('arial', 16), cursor='arrow', justify='center', state='disabled', command=SaveAs)
+butt98.pack(side='top', padx=4, pady=[10, 2], fill='both')
 
 butt99 = Button(frame_left, text='Exit', font=('arial', 16), cursor='hand2', justify='center', command=DisMiss)
 butt99.pack(side='bottom', padx=4, pady=[10, 2], fill='both')
@@ -341,10 +344,10 @@ zanyato.pack(side='top')
 frame_zoom = Frame(frame_right, width=300, borderwidth=2, relief='groove')
 frame_zoom.pack(side='bottom')
 
-butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='hand2', justify='center', state='disabled', command=zoomIn)
+butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', command=zoomIn)
 butt_plus.pack(side='left', padx=0, pady=0, fill='both')
 
-butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='hand2', justify='center', state='disabled', command=zoomOut)
+butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', command=zoomOut)
 butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text=f'Zoom {zoom_factor}:1', font=('courier', 8), state='disabled')
