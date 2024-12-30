@@ -27,9 +27,9 @@ __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
-from tkinter import Tk, Button, Frame, IntVar, Label, PhotoImage, Spinbox, filedialog
-import tempfile
 import shutil
+import tempfile
+from tkinter import Button, Frame, IntVar, Label, PhotoImage, Spinbox, Tk, filedialog
 
 import png  # PNG I/O: PyPNG from: https://gitlab.com/drj11/pypng
 
