@@ -17,3 +17,7 @@ Python utilities for conversion of bitmap image (in PNG format) to some sort of 
 *Usage:* programs are equipped with minimal GUI for file selection. Exported scene contains enough basic stuff (globals, light, camera) to be rendered out of the box, and is well structured and commented for further editing.
 
 [Dnyarri projects website](https://dnyarri.github.io/)
+
+Parent project:
+
+[POVRay mosaic](https://dnyarri.github.io/povzaika.html)
