@@ -10,11 +10,11 @@ Preview part based on https://dnyarri.github.io/pypnm.html
 
 History:
 
-24.10.14.0  Initial version of filter template.  
-24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.  
-24.12.09.3  Fix for RGBA and fix for 16-bit.  
-24.12.30.1  Fix for L, fix for export.  
-25.01.26.1  Image list moved to global to reduce rereading.  
+24.10.14.0  Initial version of filter template.
+24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.
+24.12.09.3  Fix for RGBA and fix for 16-bit.
+24.12.30.1  Fix for L, fix for export.
+25.01.26.1  Image list moved to global to reduce rereading.
 
 """
 
@@ -22,7 +22,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '25.01.26.1'
+__version__ = '25.01.26.2'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -250,16 +250,16 @@ def GetSource():
 
 def RunFilter():
     """Filtering image, and previewing"""
-
+    global preview, preview_data
+    global X, Y, Z, maxcolors, image3D, info
     # filtering part
     threshold_x = maxcolors * int(spin01.get()) / 255  # Rescaling for 16-bit
     threshold_y = maxcolors * int(spin02.get()) / 255
 
-    result3D = filter(image3D, threshold_x, threshold_y)
+    image3D = filter(image3D, threshold_x, threshold_y)
 
     # preview result
-    global preview, preview_data
-    preview_data = list2bin(result3D, maxcolors)
+    preview_data = list2bin(image3D, maxcolors)
     preview = PhotoImage(data=preview_data)
     preview = preview.zoom(zoom_factor, zoom_factor)  # "zoom" zooms in, "subsample" zooms out
     zanyato.config(text='Result', image=preview, compound='top')
@@ -274,12 +274,7 @@ def RunFilter():
 
 def SaveAs():
     """Once pressed on Save as"""
-
-    # filtering part
-    threshold_x = maxcolors * int(spin01.get()) / 255  # Rescaling for 16-bit
-    threshold_y = maxcolors * int(spin02.get()) / 255
-
-    result3D = filter(image3D, threshold_x, threshold_y)
+    global X, Y, Z, maxcolors, image3D, info
 
     # Open "Save as..." file
     savefilename = filedialog.asksaveasfilename(
@@ -294,8 +289,12 @@ def SaveAs():
     info['greyscale'] = False
     info['planes'] = 3
     info['alpha'] = False
+    if 'palette' in info:
+        del info['palette']  # images get promoted to smooth color when editing
+    if 'background' in info:
+        del info['background']
 
-    list2png(savefilename, result3D, info)
+    list2png(savefilename, image3D, info)
 
 
 def zoomIn():
@@ -338,9 +337,9 @@ sortir = Tk()
 
 zoom_factor = 1
 
-sortir.title(f'Averager (ver. {__version__})')
+sortir.title('Averager')
 sortir.geometry('+200+100')
-sortir.minsize(320, 160)
+sortir.minsize(300, 110)
 
 # Main dialog icon is PPM as well!
 icon = PhotoImage(data=b'P6\n2 2\n255\n\xff\x00\x00\xff\xff\x00\x00\x00\xff\x00\xff\x00')
