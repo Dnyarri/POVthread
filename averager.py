@@ -10,10 +10,11 @@ Preview part based on https://dnyarri.github.io/pypnm.html
 
 History:
 
-24.10.14.0  Initial version of filter template.
-24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.
-24.12.09.3  Fix for RGBA and fix for 16-bit.
-24.12.30.1  Fix for L, fix for export.
+24.10.14.0  Initial version of filter template.  
+24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.  
+24.12.09.3  Fix for RGBA and fix for 16-bit.  
+24.12.30.1  Fix for L, fix for export.  
+25.01.26.1  Image list moved to global to reduce rereading.  
 
 """
 
@@ -21,7 +22,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '24.12.30.1'
+__version__ = '25.01.26.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -154,7 +155,6 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
         x_start = 0
         number = 1
         for x in range(0, X, 1):
-
             if Z > 2:
                 r, g, b = sourceimage[y][x][0:3]
             else:
@@ -213,6 +213,7 @@ def GetSource():
     """Opening source image and redefining other controls state"""
 
     global zoom_factor, sourcefilename, preview, preview_data
+    global X, Y, Z, maxcolors, image3D, info
 
     zoom_factor = 1
 
@@ -250,8 +251,6 @@ def GetSource():
 def RunFilter():
     """Filtering image, and previewing"""
 
-    X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
-
     # filtering part
     threshold_x = maxcolors * int(spin01.get()) / 255  # Rescaling for 16-bit
     threshold_y = maxcolors * int(spin02.get()) / 255
@@ -275,8 +274,6 @@ def RunFilter():
 
 def SaveAs():
     """Once pressed on Save as"""
-
-    X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
     # filtering part
     threshold_x = maxcolors * int(spin01.get()) / 255  # Rescaling for 16-bit
@@ -341,9 +338,9 @@ sortir = Tk()
 
 zoom_factor = 1
 
-sortir.title('Averager')
+sortir.title(f'Averager (ver. {__version__})')
 sortir.geometry('+200+100')
-sortir.minsize(300, 110)
+sortir.minsize(320, 160)
 
 # Main dialog icon is PPM as well!
 icon = PhotoImage(data=b'P6\n2 2\n255\n\xff\x00\x00\xff\xff\x00\x00\x00\xff\x00\xff\x00')
