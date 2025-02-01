@@ -14,7 +14,7 @@ History:
 24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.
 24.12.09.3  Fix for RGBA and fix for 16-bit.
 24.12.30.1  Fix for L, fix for export.
-25.01.26.1  Image list moved to global to reduce rereading.
+1.14.1.1    Image list moved to global to reduce rereading. Versioning harmonized with other programs.
 
 """
 
@@ -22,10 +22,10 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '25.01.26.2'
+__version__ = '1.14.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
-__status__ = 'Development'
+__status__ = 'Production'
 
 import array
 from tkinter import Button, Frame, IntVar, Label, PhotoImage, Spinbox, Tk, filedialog
@@ -232,8 +232,8 @@ def GetSource():
     butt_plus.config(state='normal', cursor='hand2')
     # updating zoom factor display
     label_zoom.config(text=f'Zoom {zoom_factor}:1')
-    # enabling "Save as..."
-    butt89.config(state='normal', cursor='hand2')
+    # disabling "Save as..." from previous image session, if any
+    butt89.config(state='disabled')
     # enabling "Threshold" spins and their labels
     spin01.config(state='normal')
     spin02.config(state='normal')
@@ -354,19 +354,19 @@ frame_right.pack(side='left', anchor='nw')
     │ Left frame │
     └───────────-┘ """
 # Open image
-butt01 = Button(frame_left, text='Open...', font=('arial', 16), cursor='hand2', justify='center', command=GetSource)
+butt01 = Button(frame_left, text='Open...', font=('helvetica', 16), cursor='hand2', justify='center', command=GetSource)
 butt01.pack(side='top', padx=4, pady=[2, 12], fill='both')
 
-# X control
-info01 = Label(frame_left, text='Threshold X', font=('arial', 10), justify='left', state='disabled')
+# X-pass threshold control
+info01 = Label(frame_left, text='Threshold X', font=('helvetica', 10), justify='left', state='disabled')
 info01.pack(side='top', padx=4, pady=[10, 2], fill='both')
 
 ini_threshold_x = IntVar(value=16)
 spin01 = Spinbox(frame_left, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled')
 spin01.pack(side='top', padx=4, pady=[0, 2], fill='both')
 
-# Y control
-info02 = Label(frame_left, text='Threshold Y', font=('arial', 10), justify='left', state='disabled')
+# Y-pass threshold control
+info02 = Label(frame_left, text='Threshold Y', font=('helvetica', 10), justify='left', state='disabled')
 info02.pack(side='top', padx=4, pady=[0, 2], fill='both')
 
 ini_threshold_y = IntVar(value=8)
@@ -374,21 +374,21 @@ spin02 = Spinbox(frame_left, from_=0, to=256, increment=1, textvariable=ini_thre
 spin02.pack(side='top', padx=4, pady=[0, 2], fill='both')
 
 # Filter start
-butt02 = Button(frame_left, text='Filter', font=('arial', 16), cursor='arrow', justify='center', state='disabled', command=RunFilter)
+butt02 = Button(frame_left, text='Filter', font=('helvetica', 16), cursor='arrow', justify='center', state='disabled', command=RunFilter)
 butt02.pack(side='top', padx=4, pady=[0, 24], fill='both')
 
 # Save result
-butt89 = Button(frame_left, text='Save as...', font=('arial', 16), cursor='arrow', justify='center', state='disabled', command=SaveAs)
+butt89 = Button(frame_left, text='Save as...', font=('helvetica', 16), cursor='arrow', justify='center', state='disabled', command=SaveAs)
 butt89.pack(side='top', padx=4, pady=2, fill='both')
 
 # Exit
-butt99 = Button(frame_left, text='Exit', font=('arial', 16), cursor='hand2', justify='center', command=DisMiss)
+butt99 = Button(frame_left, text='Exit', font=('helvetica', 16), cursor='hand2', justify='center', command=DisMiss)
 butt99.pack(side='bottom', padx=4, pady=2, fill='both')
 
 """ ┌─────────────┐
     │ Right frame │
     └────────────-┘ """
-zanyato = Label(frame_right, text='Preview area', font=('arial', 10), justify='center', borderwidth=2, relief='groove')
+zanyato = Label(frame_right, text='Preview area', font=('helvetica', 10), justify='center', borderwidth=2, relief='groove')
 zanyato.pack(side='top')
 
 frame_zoom = Frame(frame_right, width=300, borderwidth=2, relief='groove')
