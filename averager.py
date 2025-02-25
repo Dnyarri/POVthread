@@ -11,9 +11,9 @@ Preview part based on https://dnyarri.github.io/pypnm.html
 History:
 
 24.10.14.0  Initial version of filter template.
+
 24.12.09.1  Finished rebuilding for standalone filter+GUI complex, with in-RAM PPM-based preview.
-24.12.09.3  Fix for RGBA and fix for 16-bit.
-24.12.30.1  Fix for L, fix for export.
+
 1.14.1.1    Image list moved to global to reduce rereading. Versioning harmonized with other programs.
 
 """
@@ -22,13 +22,19 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.14.1.1'
+__version__ = '1.14.25.14'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
 import array
 from tkinter import Button, Frame, IntVar, Label, PhotoImage, Spinbox, Tk, filedialog
+
+try:
+    import png
+except ImportError:
+    print('Need PyPNG from : https://gitlab.com/drj11/pypng')
+    quit()
 
 import png  # PNG I/O: PyPNG from: https://gitlab.com/drj11/pypng
 
@@ -90,44 +96,44 @@ def list2png(out_filename: str, image3D: list[list[list[int]]], info: dict) -> N
     return None
 
 
-def list2bin(in_list_3d: list[list[list[int]]], maxcolors: int) -> bytes:
-    """Convert PNG to PGM P5 or PPM P6 (binary) data structure in memory."""
+def list2bin(list_3d: list[list[list[int]]], maxcolors: int, show_chessboard: bool = False) -> bytes:
+    """Convert nested image data list to PGM P5 or PPM P6 (binary) data structure in memory."""
+
+    def _chess(x: int, y: int) -> int:
+        return int(maxcolors * 0.8) if ((y // 8) % 2) == ((x // 8) % 2) else maxcolors
 
     # Determining list sizes
-    Y = len(in_list_3d)
-    X = len(in_list_3d[0])
-    Z = len(in_list_3d[0][0])
+    Y = len(list_3d)
+    X = len(list_3d[0])
+    Z = len(list_3d[0][0])
 
-    # Flattening 3D list to 1D list
-    in_list_1d = [c for row in in_list_3d for px in row for c in px]
-
-    if Z == 1:  # L image
+    if Z < 3:
         magic = 'P5'
-
-    if Z == 2:  # LA image
-        magic = 'P5'
-        del in_list_1d[1::2]  # Deleting A channel
-
-    if Z == 3:  # RGB image
+    else:
         magic = 'P6'
 
-    if Z == 4:  # RGBA image
-        magic = 'P6'
-        del in_list_1d[3::4]  # Deleting A channel
+    if Z == 3 or Z == 1:
+        Z_READ = Z
+        list_1d = [list_3d[y][x][z] for y in range(Y) for x in range(X) for z in range(Z_READ)]
+    else:
+        Z_READ = Z - 1
+
+        if show_chessboard:
+            list_1d = [(((list_3d[y][x][z] * list_3d[y][x][Z_READ]) + (_chess(x, y) * (maxcolors - list_3d[y][x][Z_READ]))) // maxcolors) for y in range(Y) for x in range(X) for z in range(Z_READ)]
+        else:
+            list_1d = [list_3d[y][x][z] for y in range(Y) for x in range(X) for z in range(Z_READ)]
 
     if maxcolors < 256:
         datatype = 'B'
     else:
         datatype = 'H'
 
-    header = array.array('B', f'{magic}\n{X} {Y}\n{maxcolors}\n'.encode())
-    content = array.array(datatype, in_list_1d)
+    header = array.array('B', f'{magic}\n{X} {Y}\n{maxcolors}\n'.encode('ascii'))
+    content = array.array(datatype, list_1d)
 
-    content.byteswap()  # Critical!
+    content.byteswap()
 
-    pnm = header.tobytes() + content.tobytes()
-
-    return pnm  # End of "list2bin" list to PNM conversion function
+    return header.tobytes() + content.tobytes()
 
 
 def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: int) -> list[list[list[int]]]:
@@ -205,7 +211,6 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
 
 def DisMiss():
     """Kill dialog and continue"""
-
     sortir.destroy()
 
 
@@ -223,7 +228,7 @@ def GetSource():
 
     X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
-    preview_data = list2bin(image3D, maxcolors)
+    preview_data = list2bin(image3D, maxcolors, True)
     preview = PhotoImage(data=preview_data)
     preview = preview.zoom(zoom_factor, zoom_factor)  # "zoom" zooms in, "subsample" zooms out
     zanyato.config(text='Source', image=preview, compound='top')
@@ -354,7 +359,7 @@ frame_right.pack(side='left', anchor='nw')
     │ Left frame │
     └───────────-┘ """
 # Open image
-butt01 = Button(frame_left, text='Open...', font=('helvetica', 16), cursor='hand2', justify='center', command=GetSource)
+butt01 = Button(frame_left, text='Open PNG...'.center(16, ' '), font=('helvetica', 16), cursor='hand2', justify='center', command=GetSource)
 butt01.pack(side='top', padx=4, pady=[2, 12], fill='both')
 
 # X-pass threshold control
