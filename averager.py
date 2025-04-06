@@ -38,10 +38,9 @@ from pathlib import Path
 from tkinter import Button, Frame, IntVar, Label, PhotoImage, Spinbox, Tk, filedialog
 from tkinter.ttk import Separator
 
+from filter import avgrow
 from pypng import pnglpng
 from pypnm import pnmlpnm
-
-from filter import avgrow
 
 """ ┌────────────┐
     │ GUI events │
@@ -52,6 +51,7 @@ def DisMiss():
     """Kill dialog and continue"""
 
     sortir.destroy()
+
 
 def UINormal():
     """Normal UI state, buttons enabled"""
@@ -118,7 +118,7 @@ def GetSource(event=None):
     """ ┌─────────────────────────────────────────────────────────────────────────┐
         │ Converting list to bytes of PPM-like structure "preview_data" in memory │
         └────────────────────────────────────────────────────────────────────────-┘ """
-    preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard = True)
+    preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard=True)
 
     """ ┌────────────────────────────────────────────────┐
         │ Now showing "preview_data" bytes using Tkinter │
@@ -204,7 +204,7 @@ def RunFilter():
     UINormal()
 
     # preview result
-    preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard = True)
+    preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard=True)
     preview = PhotoImage(data=preview_data)
 
     if zoom_factor >= 0:
