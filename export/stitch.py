@@ -28,7 +28,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.16.6.16'
+__version__ = '1.16.6.22'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -233,11 +233,11 @@ def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) 
 
             # alpha to be used for alpha dithering
             if Z == 4 or Z == 2:
-                a = 1.2 * (float(src(x, y, Z - 1)) / maxcolors) - 0.1  # Slightly extending +/- 0.1
+                a = 1.02 * (float(src(x, y, Z - 1)) / maxcolors) - 0.01  # Slightly extending +/- 1%
+                tobe_or_nottobe = a >= random()
+                # a = 0 is transparent, a = 1.0 is opaque
             else:
-                a = 1.1
-            # a = 0 is transparent, a = 1.0 is opaque
-            tobe_or_nottobe = a >= random()
+                tobe_or_nottobe = True
 
             # whether to draw thingie in place of partially transparent pixel or not
             if tobe_or_nottobe:
