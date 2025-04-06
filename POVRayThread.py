@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-"""Adaptive color average image filtering.
-
-Average image colors in a pixel row until difference between averaged and next pixel in row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
+"""POV-Ray Thread: Linen and Stitch - Converting image into textile simulation in POV-Ray format.
+---
 
 Input: PNG, PPM, PGM.
 
-Output: PNG, PPM, PGM.
+Output: `POV-Ray<https://www.povray.org/>`_.
 
 Created by: `Ilya Razmanov <mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad <mailto:amphisoft@gmail.com>`_.
 
@@ -21,6 +20,8 @@ History:
 
 ---
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
+
+Git repository: `POV-Ray Thread at Github<https://dnyarri.github.io/povthread.html>`_
 
 """
 
@@ -41,6 +42,7 @@ from tkinter.ttk import Separator
 from pypng import pnglpng
 from pypnm import pnmlpnm
 
+from export import linen, stitch
 from filter import avgrow
 
 """ ┌────────────┐
@@ -225,28 +227,57 @@ def RunFilter():
     sortir.update()
 
 
-def SaveAs():
-    """Once pressed on Save as..."""
-
-    # Adjusting "Save to" formats to be displayed according to bitdepth
-    if Z < 3:
-        format = [('PNG', '.png'), ('Portable grey map', '.pgm')]
-    else:
-        format = [('PNG', '.png'), ('Portable pixel map', '.ppm')]
-
-    # Open export file
-    resultfilename = filedialog.asksaveasfilename(
-        title='Save image file',
-        filetypes=format,
-        defaultextension=('PNG file', '.png'),
+def SaveAsLinen():
+    """Once pressed on Linen"""
+    # Open "Save as..." file
+    savefilename = filedialog.asksaveasfilename(
+        title='Save POV-Ray file',
+        filetypes=[
+            ('POV-Ray file', '.pov'),
+            ('All Files', '*.*'),
+        ],
+        defaultextension=('POV-Ray scene file', '.pov'),
     )
-    if resultfilename == '':
-        return None
+    if savefilename == '':
+        return
 
-    if Path(resultfilename).suffix == '.png':
-        pnglpng.list2png(resultfilename, image3D, info)
-    elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
-        pnmlpnm.list2pnm(resultfilename, image3D, maxcolors)
+    UIBusy()
+
+    """ ┌─────────────────────────────────────────────────────┐
+        │ Converting list to POV and saving as "savefilename" │
+        │ using global maxcolors, image3D                     │
+        └─────────────────────────────────────────────────────┘ """
+
+    linen.linen(image3D, maxcolors, savefilename)
+
+    UINormal()
+
+
+def SaveAsStitch():
+    """Once pressed on Linen"""
+    # Open "Save as..." file
+    savefilename = filedialog.asksaveasfilename(
+        title='Save POV-Ray file',
+        filetypes=[
+            ('POV-Ray file', '.pov'),
+            ('All Files', '*.*'),
+        ],
+        defaultextension=('POV-Ray scene file', '.pov'),
+    )
+    if savefilename == '':
+        return
+
+    UIBusy()
+
+    """ ┌─────────────────────────────────────────────────────┐
+        │ Converting list to POV and saving as "savefilename" │
+        │ using global maxcolors, image3D                     │
+        └─────────────────────────────────────────────────────┘ """
+
+    stitch.stitch(image3D, maxcolors, savefilename)
+
+    UINormal()
+
 
 
 """ ╔══════════╗
@@ -257,16 +288,16 @@ sortir = Tk()
 
 zoom_factor = 0
 
-sortir.title('Averager')
+sortir.title('POVThread')
 sortir.geometry('+200+100')
-sortir.minsize(300, 380)
+sortir.minsize(300, 110)
 
 # Main dialog icon is PPM as well!
 icon = PhotoImage(data=b'P6\n2 2\n255\n\xff\x00\x00\xff\xff\x00\x00\x00\xff\x00\xff\x00')
 sortir.iconphoto(True, icon)
 
 # Info statuses dictionaries
-info_normal = {'txt': f'Adoptive Average Filter {__version__}', 'fg': 'grey', 'bg': 'light grey'}
+info_normal = {'txt': f'Linen and Stitch {__version__}', 'fg': 'grey', 'bg': 'light grey'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 8), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
@@ -287,7 +318,7 @@ butt01.pack(side='top', padx=4, pady=(2, 36), fill='both')
 sep01 = Separator(frame_left, orient='horizontal')
 sep01.pack(side='top', fill='both')
 
-info00 = Label(frame_left, text='Filtering', font=('helvetica', 14, 'italic'), justify='center', foreground='brown', background='light blue', state='disabled')
+info00 = Label(frame_left, text='Prefiltering', font=('helvetica', 14, 'italic'), justify='center', foreground='brown', background='light blue', state='disabled')
 info00.pack(side='top', padx=0, pady=(0, 12), fill='both')
 
 # X-pass threshold control
@@ -313,8 +344,12 @@ butt02.pack(side='top', padx=4, pady=0, fill='both')
 sep02 = Separator(frame_left, orient='horizontal')
 sep02.pack(side='top', pady=(4, 24), fill='both')
 
-# Save result
-butt89 = Button(frame_left, text='Save as...', font=('helvetica', 16), justify='center', state='disabled', command=SaveAs)
+# Export linen
+butt88 = Button(frame_left, text='Export Linen...', font=('helvetica', 16), justify='center', state='disabled', command=SaveAsLinen)
+butt88.pack(side='top', padx=4, pady=2, fill='both')
+
+# Export stitch
+butt89 = Button(frame_left, text='Export Stitch...', font=('helvetica', 16), justify='center', state='disabled', command=SaveAsStitch)
 butt89.pack(side='top', padx=4, pady=2, fill='both')
 
 # Exit
