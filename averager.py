@@ -28,7 +28,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.16.6.9'
+__version__ = '1.16.6.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -86,6 +86,8 @@ def GetSource(event=None):
     sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('PNG', '.png'), ('PNM', '.ppm .pgm .pbm')])
     if sourcefilename == '':
         return
+
+    UIBusy()
 
     """ ┌────────────────────────────────────────┐
         │ Loading file, converting data to list. │
@@ -187,7 +189,7 @@ def zoomOut(event=None):
 
 def RunFilter():
     """Filtering image, and previewing"""
-    global preview, preview_data
+    global zoom_factor, preview, preview_data
     global X, Y, Z, maxcolors, image3D, info
 
     # filtering part
@@ -218,11 +220,6 @@ def RunFilter():
     # enabling zoom
     label_zoom.config(state='normal')
     butt_plus.config(state='normal', cursor='hand2')
-    # updating zoom factor display
-    label_zoom.config(text=f'Zoom {zoom_factor}:1')
-    # enabling "Save as..."
-    butt89.config(state='normal', cursor='hand2')
-    sortir.update()
 
 
 def SaveAs():
@@ -243,10 +240,14 @@ def SaveAs():
     if resultfilename == '':
         return None
 
+    UIBusy()
+
     if Path(resultfilename).suffix == '.png':
         pnglpng.list2png(resultfilename, image3D, info)
     elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
         pnmlpnm.list2pnm(resultfilename, image3D, maxcolors)
+
+    UINormal()
 
 
 """ ╔══════════╗
