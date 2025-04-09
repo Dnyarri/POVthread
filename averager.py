@@ -19,6 +19,8 @@ History:
 
 1.16.4.24   PNG and PPM support, zoom in and out, numerous fixes.
 
+1.16.9.14   Preview switch source/result added. Zoom on click now mimic Photoshop Ctrl + Click and Alt + Click.
+
 ---
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
 
@@ -28,7 +30,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.16.6.18'
+__version__ = '1.16.9.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -77,11 +79,12 @@ def UIBusy():
 def GetSource(event=None):
     """Opening source image and redefining other controls state"""
 
-    global zoom_factor, preview, preview_data
+    global zoom_factor, view_src, preview, preview_data
     global X, Y, Z, maxcolors, image3D, info
-    global source_image3D  # deep copy of image3D
+    global source_image3D, preview_src  # deep copy of source
 
     zoom_factor = 0
+    view_src = True
 
     sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('PNG', '.png'), ('PNM', '.ppm .pgm .pbm')])
     if sourcefilename == '':
@@ -114,7 +117,7 @@ def GetSource(event=None):
     else:
         raise ValueError('Extension not recognized')
 
-    # Creating deep copy of image3D
+    # Creating deep copy of source image3D
     source_image3D = deepcopy(image3D)
 
     """ ┌─────────────────────────────────────────────────────────────────────────┐
@@ -126,14 +129,16 @@ def GetSource(event=None):
         │ Now showing "preview_data" bytes using Tkinter │
         └────────────────────────────────────────────────┘ """
     preview = PhotoImage(data=preview_data)
+    # Creating copy of source preview for further switch between source and result
+    preview_src = preview
 
-    preview = preview.zoom(zoom_factor + 1, zoom_factor + 1)  # "zoom" zooms in, "subsample" zooms out
     zanyato.config(text='Source', font=('helvetica', 8), image=preview, compound='top', padx=0, pady=0, state='normal')
     # binding zoom on preview click
-    zanyato.bind('<Button-1>', zoomIn)  # left
-    zanyato.bind('<Alt-Button-1>', zoomOut)  # left
-    zanyato.bind('<Button-2>', zoomOut)  # middle
-    zanyato.bind('<Button-3>', zoomOut)  # right
+    zanyato.bind('<Button-1>', zoomIn)  # left click
+    zanyato.bind('<Control-Button-1>', zoomIn)  # Ctrl + left click like Photoshop
+    zanyato.bind('<Alt-Button-1>', zoomOut)  # Alt + left click like Photoshop
+    zanyato.bind('<Button-2>', zoomOut)  # middle click
+    zanyato.bind('<Button-3>', zoomOut)  # right click
     # enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
@@ -149,10 +154,14 @@ def zoomIn(event=None):
     preview = PhotoImage(data=preview_data)
 
     if zoom_factor >= 0:
-        preview = preview.zoom(zoom_factor + 1, zoom_factor + 1)
+        preview = preview.zoom(
+            zoom_factor + 1,
+        )
         label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
     else:
-        preview = preview.subsample(1 - zoom_factor, 1 - zoom_factor)
+        preview = preview.subsample(
+            1 - zoom_factor,
+        )
         label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
 
     zanyato.config(image=preview)
@@ -171,10 +180,14 @@ def zoomOut(event=None):
     preview = PhotoImage(data=preview_data)
 
     if zoom_factor >= 0:
-        preview = preview.zoom(zoom_factor + 1, zoom_factor + 1)
+        preview = preview.zoom(
+            zoom_factor + 1,
+        )
         label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
     else:
-        preview = preview.subsample(1 - zoom_factor, 1 - zoom_factor)
+        preview = preview.subsample(
+            1 - zoom_factor,
+        )
         label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
 
     zanyato.config(image=preview)
@@ -191,6 +204,10 @@ def RunFilter():
     """Filtering image, and previewing"""
     global zoom_factor, preview, preview_data
     global X, Y, Z, maxcolors, image3D, info
+    global preview_filtered
+
+    # Creating temporary copy of source preview for further switch between source and result
+    preview_filtered = preview_src
 
     # filtering part
     threshold_x = maxcolors * int(spin01.get()) // 255  # Rescaling for 16-bit
@@ -209,17 +226,53 @@ def RunFilter():
     preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard=True)
     preview = PhotoImage(data=preview_data)
 
+    # Replacing temporary copy of source preview with result preview for further switch between source and result
+    preview_filtered = preview
+
     if zoom_factor >= 0:
-        preview = preview.zoom(zoom_factor + 1, zoom_factor + 1)
+        preview = preview.zoom(
+            zoom_factor + 1,
+        )
         label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
     else:
-        preview = preview.subsample(1 - zoom_factor, 1 - zoom_factor)
+        preview = preview.subsample(
+            1 - zoom_factor,
+        )
         label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
 
     zanyato.config(text='Result', image=preview, compound='top')
     # enabling zoom
     label_zoom.config(state='normal')
     butt_plus.config(state='normal', cursor='hand2')
+
+    # binding switch on preview click
+    zanyato.bind('<Button-1>', SwitchView)  # left click
+
+
+def SwitchView(event=None):
+    """Switching preview between preview_src and preview_filtered"""
+    global zoom_factor, view_src, preview
+    if view_src:
+        preview = preview_src
+        preview_label = 'Source'
+        view_src = not view_src
+    else:
+        preview = preview_filtered
+        preview_label = 'Result'
+        view_src = not view_src
+
+    if zoom_factor >= 0:
+        preview = preview.zoom(
+            zoom_factor + 1,
+        )
+        label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
+    else:
+        preview = preview.subsample(
+            1 - zoom_factor,
+        )
+        label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
+
+    zanyato.config(text=preview_label, image=preview)
 
 
 def SaveAs():
