@@ -28,7 +28,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.16.6.16'
+__version__ = '1.16.9.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -115,6 +115,7 @@ def linen(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -
             'global_settings{\n',
             '    max_trace_level 3   // Small to speed up preview. May need to be increased for metals\n',
             '    adc_bailout 0.01    // High to speed up preview. May need to be decreased to 1/256\n',
+            '    assumed_gamma 1.0\n',
             '    ambient_light <0.5, 0.5, 0.5>\n',
             '    charset utf8\n',
             '}\n\n',
