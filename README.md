@@ -1,4 +1,4 @@
-# POVRay Thread - Bitmap to 3D canvas and cross stitch simulation converter
+# POV-Ray Thread - Bitmap to 3D canvas and cross stitch simulation converter
 
 Python program for conversion of bitmap image to some sort of solid objects in [POVRay](https://www.povray.org/) 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
 
@@ -23,8 +23,8 @@ Useful GUI features include mouse event handling:
 
 ## Dependencies
 
-1. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current img2mesh distribution.
-2. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current img2mesh distribution.
+1. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current POV-Ray Thread distribution.
+2. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current POV-Ray Thread distribution.
 3. Tkinter. Included into standard CPython distribution.
 
 ## Installation and Usage
@@ -41,4 +41,4 @@ Later this filtering module was added to *POVRayThread*, making *Averager* redun
 
 [Dnyarri projects website](https://dnyarri.github.io/) - other Python freeware made by the same author.
 
-[POVRay mosaic](https://dnyarri.github.io/povzaika.html) - parent project.
+[POV-Ray Mosaic](https://dnyarri.github.io/povzaika.html) - parent project.
