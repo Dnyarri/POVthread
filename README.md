@@ -4,13 +4,22 @@ Python program for conversion of bitmap image to some sort of solid objects in [
 
 [![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png)](https://dnyarri.github.io/povthread.html)
 
-## Brief effects description  
+## Main program GUI
 
-- **Linen** - creates an object, simulating canvas, colored after source image (taffeta, print on canvas, and the like).
-- **Stitch** - simulates common cross stitching embroidery appearance.
+Main program **POVRayThread.py** provides general linking between PNG and PPM/PGM reading modules and POV-Ray writing one.
+
+Useful GUI features include mouse event handling:
+
+- After starting program any click on preview area is equal to "Open image";
+- After opening an image left-click is *"zoom in"*, right-click is *"zoom out"*;
+- After filtering an image left click is source\result preview switch, *Ctrl + Left click* is *"zoom in"*, *Alt + Left click* is *"zoom out"*, similar to Photoshop.
+
+## Brief effects module description  
+
+- **Linen.py** - creates an object, simulating canvas, colored after source image (taffeta, print on canvas, and the like).
+- **Stitch.py** - simulates common cross stitching embroidery appearance.
 
 [![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png)](https://dnyarri.github.io/povthread.html)
-
 
 ## Dependencies
 
