@@ -37,6 +37,8 @@ Averager was initially created as an accessory for preprocessing source PNG file
 
 Later this filtering module was added to *POVRayThread*, making *Averager* redundant; however, it is still included into distribution as an illustration of 100% pure Python image filtering program.
 
+[![Averager GUI](https://dnyarri.github.io/thread/ave.png)](https://dnyarri.github.io/povthread.html)
+
 ### References
 
 [Dnyarri projects website](https://dnyarri.github.io/) - other Python freeware made by the same author.
