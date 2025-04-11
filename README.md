@@ -39,8 +39,12 @@ Later this filtering module was added to *POVRayThread*, making *Averager* redun
 
 [![Averager GUI](https://dnyarri.github.io/thread/ave.png)](https://dnyarri.github.io/povthread.html)
 
-### References
+### Related
 
-[Dnyarri projects website](https://dnyarri.github.io/) - other Python freeware made by the same author.
+[Dnyarri website](https://dnyarri.github.io) - other Python freeware by the same author.
 
-[POV-Ray Mosaic](https://dnyarri.github.io/povzaika.html) - parent project.
+[POV-Ray Thread page](https://dnyarri.github.io/povthread.html) with illustrations, explanations etc.
+
+[POV-Ray Thread source at github](https://github.com/Dnyarri/POVthread)
+
+[POV-Ray Thread source at gitflic mirror](https://gitflic.ru/project/dnyarri/povthread)
