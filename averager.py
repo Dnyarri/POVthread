@@ -171,7 +171,22 @@ def RunFilter(event=None):
     preview_data = pnmlpnm.list2bin(image3D, maxcolors, show_chessboard=True)
     preview_filtered = PhotoImage(data=preview_data)
 
-    SwitchView()  # NOTE: it inverts view_src!
+    view_src = False
+    preview = preview_filtered
+    preview_label = 'Result'
+
+    if zoom_factor >= 0:
+        preview = preview.zoom(
+            zoom_factor + 1,
+        )
+        label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
+    else:
+        preview = preview.subsample(
+            1 - zoom_factor,
+        )
+        label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
+
+    zanyato.config(text=preview_label, image=preview)
 
     # enabling zoom
     label_zoom.config(state='normal')
