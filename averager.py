@@ -34,14 +34,16 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.16.20.20'
+__version__ = '2.18.12.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
 from copy import deepcopy
 from pathlib import Path
+from random import randbytes  # Used for random icon only
 from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk, filedialog
+from tkinter.messagebox import showinfo
 
 from filter import avgrow
 from pypng.pnglpng import list2png, png2list
@@ -60,6 +62,15 @@ def DisMiss(event=None) -> None:
 def ShowMenu(event) -> None:
     """Pop menu up (or sort of drop it down)"""
     menu02.post(event.x_root, event.y_root)
+
+
+def ShowInfo(event=None):
+    """Show program and module version"""
+    showinfo(
+        title='Image information',
+        message=f'File: {sourcefilename}',
+        detail=f'Image: X={X}, Y={Y}, Z={Z}, maxcolors={maxcolors}',
+    )
 
 
 def UINormal() -> None:
@@ -109,15 +120,18 @@ def GetSource(event=None) -> None:
     global preview
     global X, Y, Z, maxcolors, image3D, info, sourcefilename
     global source_image3D, preview_src, preview_filtered  # deep copy of source data and copies of preview
+    global info_normal
 
     zoom_factor = 0
     view_src = True
     is_filtered = False
     is_saved = False
 
-    sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('PNG', '.png'), ('PNM', '.ppm .pgm .pbm')])
+    sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
     if sourcefilename == '':
         return
+
+    info_normal = {'txt': f'{Path(sourcefilename).name}', 'fg': 'grey', 'bg': 'grey90'}
 
     UIBusy()
 
@@ -175,6 +189,8 @@ def GetSource(event=None) -> None:
     zanyato.bind('<Alt-Button-1>', zoomOut)  # Alt + left click
     zanyato.bind('<Double-Alt-Button-1>', zoomOut)  # Alt + left click too fast
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel
+    sortir.bind_all('<Control-i>', ShowInfo)
+    menu02.entryconfig('Image Info...', state='normal')
     # binding global
     sortir.bind_all('<Return>', RunFilter)
     # enabling save
@@ -307,9 +323,9 @@ def SaveAs(event=None) -> None:
 
     # Adjusting "Save to" formats to be displayed according to bitdepth
     if Z < 3:
-        format = [('PNG', '.png'), ('Portable grey map', '.pgm')]
+        format = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
     else:
-        format = [('PNG', '.png'), ('Portable pixel map', '.ppm')]
+        format = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
 
     # Open export file
     resultfilename = filedialog.asksaveasfilename(
@@ -338,11 +354,9 @@ is_filtered = False
 
 sortir = Tk()
 
+sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('Averager')
 sortir.geometry('+200+100')
-
-# Main dialog icon is PPM as well!
-sortir.iconphoto(True, PhotoImage(data=b'P6\n2 2\n255\n\xff\x00\x00\xff\xff\x00\x00\x00\xff\x00\xff\x00'))
 
 # Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
@@ -375,6 +389,8 @@ menu02.add_command(label='Open...', state='normal', command=GetSource, accelerat
 menu02.add_separator()
 menu02.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
 menu02.add_command(label='Save as...', state='disabled', command=SaveAs, accelerator='Ctrl+Shift+S')
+menu02.add_separator()
+menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
 menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
