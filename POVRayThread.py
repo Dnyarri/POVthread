@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """POV-Ray Thread: Linen and Stitch - Converting image into textile simulation in POV-Ray format.
----
+--------------------------------------------------------------------------------------------------
 
 Input: PNG, PPM, PGM.
 
@@ -10,7 +10,7 @@ Output: `POV-Ray<https://www.povray.org/>`_.
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
 History:
----
+----
 
 0.10.14.0   Initial version of filter host template - 14 Oct 2024. Using png in tempfile preview etc.
 
@@ -24,7 +24,7 @@ History:
 
 1.16.20.20  Changed GUI to menus.
 
----
+----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
 
 Git repository: `POV-Ray Thread at Github<https://github.com/Dnyarri/POVthread>`_; `Gitflic mirror<https://gitflic.ru/project/dnyarri/povthread>`_.
@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.18.12.8'
+__version__ = '1.19.1.7'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -66,8 +66,8 @@ def ShowMenu(event) -> None:
     menu02.post(event.x_root, event.y_root)
 
 
-def ShowInfo(event=None):
-    """Show program and module version"""
+def ShowInfo(event=None) -> None:
+    """Show image information"""
     showinfo(
         title='Image information',
         message=f'File: {sourcefilename}',
@@ -245,6 +245,7 @@ def RunFilter(event=None) -> None:
 
 
 def zoomIn(event=None) -> None:
+    """Zooming preview in"""
     global zoom_factor, view_src, preview
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
@@ -262,6 +263,7 @@ def zoomIn(event=None) -> None:
 
 
 def zoomOut(event=None) -> None:
+    """Zooming preview out"""
     global zoom_factor, view_src, preview
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
 
@@ -279,6 +281,7 @@ def zoomOut(event=None) -> None:
 
 
 def zoomWheel(event) -> None:
+    """Starting zoomIn or zoomOut by mouse wheel"""
     if event.delta < 0:
         zoomOut()
     if event.delta > 0:
@@ -295,10 +298,8 @@ def SwitchView(event=None) -> None:
         ShowPreview(preview_filtered, 'Result')
 
 
-def SaveAsLinen():
+def SaveAsLinen() -> None:
     """Once pressed on Linen"""
-
-    # Open "Save as..." file
     savefilename = filedialog.asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[
@@ -322,10 +323,8 @@ def SaveAsLinen():
     UINormal()
 
 
-def SaveAsStitch():
+def SaveAsStitch() -> None:
     """Once pressed on Linen"""
-
-    # Open "Save as..." file
     savefilename = filedialog.asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[

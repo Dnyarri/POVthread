@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """Adaptive color average image filtering.
+-------------------------------------------
 
 Average image colors in a pixel row until difference between averaged and next pixel in row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
 
@@ -11,7 +12,7 @@ Output: PNG, PPM, PGM.
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
 History:
----
+----
 
 0.10.14.0   Initial version of filter host template - 14 Oct 2024. Using png in tempfile preview etc.
 
@@ -23,7 +24,7 @@ History:
 
 2.16.20.20  Changed GUI to menus.
 
----
+----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
 
 Git: `Dnyarri at Github<https://github.com/Dnyarri>`_; `Gitflic mirror<https://gitflic.ru/user/dnyarri>`_
@@ -34,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.18.12.8'
+__version__ = '2.19.1.7'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -64,8 +65,8 @@ def ShowMenu(event) -> None:
     menu02.post(event.x_root, event.y_root)
 
 
-def ShowInfo(event=None):
-    """Show program and module version"""
+def ShowInfo(event=None) -> None:
+    """Show image information"""
     showinfo(
         title='Image information',
         message=f'File: {sourcefilename}',
@@ -248,6 +249,7 @@ def RunFilter(event=None) -> None:
 
 
 def zoomIn(event=None) -> None:
+    """Zooming preview in"""
     global zoom_factor, view_src, preview
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
@@ -265,6 +267,7 @@ def zoomIn(event=None) -> None:
 
 
 def zoomOut(event=None) -> None:
+    """Zooming preview out"""
     global zoom_factor, view_src, preview
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
 
@@ -282,6 +285,7 @@ def zoomOut(event=None) -> None:
 
 
 def zoomWheel(event) -> None:
+    """Starting zoomIn or zoomOut by mouse wheel"""
     if event.delta < 0:
         zoomOut()
     if event.delta > 0:
@@ -309,6 +313,8 @@ def Save(event=None) -> None:
     resultfilename = sourcefilename
     UIBusy()
     if Path(resultfilename).suffix == '.png':
+        # Explicitly setting compression
+        info['compression'] = 9
         list2png(resultfilename, image3D, info)
     elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
         list2pnm(resultfilename, image3D, maxcolors)
@@ -320,6 +326,7 @@ def Save(event=None) -> None:
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
     global sourcefilename
+    global info_normal
 
     # Adjusting "Save to" formats to be displayed according to bitdepth
     if Z < 3:
@@ -337,11 +344,14 @@ def SaveAs(event=None) -> None:
         return None
     UIBusy()
     if Path(resultfilename).suffix == '.png':
+        # Explicitly setting compression
+        info['compression'] = 9
         list2png(resultfilename, image3D, info)
     elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
         list2pnm(resultfilename, image3D, maxcolors)
-    UINormal()
     sourcefilename = resultfilename
+    info_normal = {'txt': f'{Path(sourcefilename).name}', 'fg': 'grey', 'bg': 'grey90'}
+    UINormal()
 
 
 """ ╔═══════════╗
