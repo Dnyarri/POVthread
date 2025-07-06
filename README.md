@@ -2,7 +2,7 @@
 
 Python program for conversion of bitmap image to some sort of solid objects in [POVRay](https://www.povray.org/) 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
 
-[![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png)](https://dnyarri.github.io/povthread.html)
+[![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png "Example of linen export rendering")](https://dnyarri.github.io/povthread.html)
 
 ## Main program GUI
 
@@ -19,7 +19,7 @@ Useful GUI features include mouse event handling:
 - **Linen.py** - creates an object, simulating canvas, colored after source image (taffeta, print on canvas, and the like).
 - **Stitch.py** - simulates common cross stitching embroidery appearance.
 
-[![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png)](https://dnyarri.github.io/povthread.html)
+[![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png "Example of cross-stitch export rendering")](https://dnyarri.github.io/povthread.html)
 
 ## Dependencies
 
@@ -33,11 +33,11 @@ Programs distribution is rather self-contained and is supposed to run right out 
 
 ## Averager
 
-Averager was initially created as an accessory for preprocessing source PNG files. Averages colors in RGB PNG within linear or squarish areas between contrast edges, providing color reduction somewhat similar to used in real cross stitch.
+**Averager.py** was initially created as an accessory for preprocessing source PNG files. It averages colors in RGB PNG or PPM within linear or squarish areas between contrast edges, providing color reduction somewhat similar to used in real cross stitch.
 
-Later this filtering module was added to *POVRayThread*, making *Averager* redundant; however, it is still included into distribution as an illustration of 100% pure Python image filtering program.
+Later this filtering module was added to *POVRayThread*, making *Averager* redundant; however, it is still included into distribution as an illustration of 100% pure Python image filtering program, working at quite acceptable speed without any large third-party C packages.
 
-[![Adaptive Image Averager program GUI](https://dnyarri.github.io/thread/ave.png)](https://dnyarri.github.io/povthread.html)
+[![Adaptive Image Averager program GUI](https://dnyarri.github.io/thread/ave.png "Adaptive Image Averager program GUI")](https://dnyarri.github.io/povthread.html#averager)
 
 ### Related
 
