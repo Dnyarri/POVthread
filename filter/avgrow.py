@@ -22,7 +22,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.16.5.22'
+__version__ = '1.17.9.17'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -43,7 +43,6 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
 def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: int) -> list[list[list[int]]]:
     """Average image pixels in a row until borderline threshold met, then repeat in a column."""
 
-    # Determining list sizes
     Y = len(sourceimage)
     X = len(sourceimage[0])
     Z = len(sourceimage[0][0])
@@ -66,12 +65,11 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
                 r, g, b = sourceimage[y][x][0:3]
             else:
                 r = g = b = sourceimage[y][x][0]
-
             number += 1
             r_sum += r
             g_sum += g
             b_sum += b
-            if (abs(r - (r_sum / number)) > threshold_x) or (abs(g - (g_sum / number)) > threshold_x) or (abs(b - (b_sum / number)) > threshold_x) or x == X:
+            if (abs(r - (r_sum / number)) > threshold_x) or (abs(g - (g_sum / number)) > threshold_x) or (abs(b - (b_sum / number)) > threshold_x):
                 for i in range(x_start, x - 1, 1):
                     medimage[y][i] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
                 medimage[y][x] = [r, g, b]
@@ -91,7 +89,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             r_sum += r
             g_sum += g
             b_sum += b
-            if (abs(r - (r_sum / number)) > threshold_y) or (abs(g - (g_sum / number)) > threshold_y) or (abs(b - (b_sum / number)) > threshold_y) or x == X:
+            if (abs(r - (r_sum / number)) > threshold_y) or (abs(g - (g_sum / number)) > threshold_y) or (abs(b - (b_sum / number)) > threshold_y):
                 for i in range(y_start, y - 1, 1):
                     resultimage[i][x] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
                 resultimage[y][x] = [r, g, b]
@@ -101,15 +99,16 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             else:
                 resultimage[y][x] = [r, g, b]
 
+    # Protect alpha if exist
     if Z == 1 or Z == 3:
         return resultimage
     else:  # Copy source alpha
-        plus_alpha = [
+        resultimage_plus_alpha = [
                         [
                             [*resultimage[y][x], sourceimage[y][x][Z-1]] for x in range(X)
                         ] for y in range(Y)
                     ]
-        return plus_alpha
+        return resultimage_plus_alpha
 
 if __name__ == '__main__':
     print('Module to be imported, not run as standalone')
