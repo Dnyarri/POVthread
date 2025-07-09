@@ -16,13 +16,15 @@ History:
 
 1.16.5.10   Modularization, some optimization. Force keep alpha.
 
+1.17.10.1   Edge condition bugfix.
+
 '''
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.17.9.17'
+__version__ = '1.17.10.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -69,7 +71,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             r_sum += r
             g_sum += g
             b_sum += b
-            if (abs(r - (r_sum / number)) > threshold_x) or (abs(g - (g_sum / number)) > threshold_x) or (abs(b - (b_sum / number)) > threshold_x):
+            if (abs(r - (r_sum / number)) > threshold_x) or (abs(g - (g_sum / number)) > threshold_x) or (abs(b - (b_sum / number)) > threshold_x) or (x == (X - 1)):
                 for i in range(x_start, x - 1, 1):
                     medimage[y][i] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
                 medimage[y][x] = [r, g, b]
@@ -89,7 +91,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             r_sum += r
             g_sum += g
             b_sum += b
-            if (abs(r - (r_sum / number)) > threshold_y) or (abs(g - (g_sum / number)) > threshold_y) or (abs(b - (b_sum / number)) > threshold_y):
+            if (abs(r - (r_sum / number)) > threshold_y) or (abs(g - (g_sum / number)) > threshold_y) or (abs(b - (b_sum / number)) > threshold_y) or (y == (Y - 1)):
                 for i in range(y_start, y - 1, 1):
                     resultimage[i][x] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
                 resultimage[y][x] = [r, g, b]
