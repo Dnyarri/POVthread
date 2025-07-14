@@ -7,7 +7,7 @@ Average image colors in a pixel row until difference between averaged and next p
 
 Input: PNG, PPM, PGM.
 
-Output: PNG, PPM, PGM.
+Output: PNG, PPM.
 
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.19.1.7'
+__version__ = '2.19.14.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -43,12 +43,14 @@ __status__ = 'Production'
 from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
-from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk, filedialog
+from tkinter import BooleanVar, Button, Checkbutton, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
-from filter import avgrow
 from pypng.pnglpng import list2png, png2list
 from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
+
+from filter import avgrow
 
 """ ┌────────────┐
     │ GUI events │
@@ -77,7 +79,7 @@ def ShowInfo(event=None) -> None:
 def UINormal() -> None:
     """Normal UI state, buttons enabled"""
     for widget in frame_top.winfo_children():
-        if widget.winfo_class() in ('Label', 'Button', 'Spinbox'):
+        if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget.config(state='normal')
         if widget.winfo_class() == 'Button':
             widget.config(cursor='hand2')
@@ -128,7 +130,7 @@ def GetSource(event=None) -> None:
     is_filtered = False
     is_saved = False
 
-    sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
     if sourcefilename == '':
         return
 
@@ -208,20 +210,21 @@ def GetSource(event=None) -> None:
 
 def RunFilter(event=None) -> None:
     """Filtering image, and previewing"""
-    global zoom_factor, view_src, is_filtered
+    global zoom_factor, view_src, is_filtered, is_saved
     global preview, preview_filtered
     global X, Y, Z, maxcolors, image3D, info
 
     # filtering part
-    threshold_x = maxcolors * int(spin01.get()) // 255  # Rescaling for 16-bit
-    threshold_y = maxcolors * int(spin02.get()) // 255
+    threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
+    threshold_y = maxcolors * ini_threshold_y.get() // 255
+    wraparound = ini_wraparound.get()
 
     UIBusy()
 
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
-    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y)
+    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y, wraparound)
 
     UINormal()
 
@@ -229,8 +232,9 @@ def RunFilter(event=None) -> None:
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
     preview_filtered = PhotoImage(data=preview_data)
 
-    # Flagging as filtered
+    # Flagging as filtered, not saved
     is_filtered = True
+    is_saved = False
     view_src = False
 
     ShowPreview(preview_filtered, 'Result')
@@ -325,8 +329,7 @@ def Save(event=None) -> None:
 
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
-    global sourcefilename
-    global info_normal
+    global sourcefilename, info_normal, is_saved
 
     # Adjusting "Save to" formats to be displayed according to bitdepth
     if Z < 3:
@@ -335,7 +338,7 @@ def SaveAs(event=None) -> None:
         format = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
 
     # Open export file
-    resultfilename = filedialog.asksaveasfilename(
+    resultfilename = asksaveasfilename(
         title='Save image file',
         filetypes=format,
         defaultextension=('PNG file', '.png'),
@@ -351,6 +354,8 @@ def SaveAs(event=None) -> None:
         list2pnm(resultfilename, image3D, maxcolors)
     sourcefilename = resultfilename
     info_normal = {'txt': f'{Path(sourcefilename).name}', 'fg': 'grey', 'bg': 'grey90'}
+    is_saved = True  # to block future repetitive saving
+    menu02.entryconfig('Save', state='disabled')
     UINormal()
 
 
@@ -367,6 +372,7 @@ sortir = Tk()
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('Averager')
 sortir.geometry('+200+100')
+sortir.minsize(380, 100)
 
 # Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
@@ -426,9 +432,13 @@ ini_threshold_y = IntVar(value=8)
 spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3)
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='both')
 
+ini_wraparound = BooleanVar(value=False)
+check01 = Checkbutton(frame_top, text='Wrap\naround', font=('helvetica', 8), justify='left', variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
+check01.pack(side='left', padx=0, pady=0)
+
 # Filter start
-butt02 = Button(frame_top, text='Filter', font=('helvetica', 10), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
-butt02.pack(side='left', padx=0, pady=0, fill='both')
+butt02 = Button(frame_top, text='Filter'.center(10, ' '), font=('helvetica', 10), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
+butt02.pack(side='left', padx=(20, 0), pady=0, fill='both')
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
