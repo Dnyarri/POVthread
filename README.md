@@ -1,6 +1,6 @@
 # POV-Ray Thread - Bitmap to 3D canvas and cross stitch simulation converter
 
-Python program for conversion of bitmap image to some sort of solid objects in [POVRay](https://www.povray.org/) 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
+Python program for conversion of bitmap image (in PNG or PPM format) to some sort of solid objects in [POVRay](https://www.povray.org/) 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
 
 [![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png "Example of linen export rendering")](https://dnyarri.github.io/povthread.html)
 
@@ -21,11 +21,12 @@ Useful GUI features include mouse event handling:
 
 [![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png "Example of cross-stitch export rendering")](https://dnyarri.github.io/povthread.html)
 
-## Dependencies
+## Prerequisite and Dependencies
 
-1. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current POV-Ray Thread distribution.
-2. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current POV-Ray Thread distribution.
-3. Tkinter. Included into standard CPython distribution.
+1. [Python](https://www.python.org/) 3.10 or above.
+2. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current POV-Ray Thread distribution.
+3. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current POV-Ray Thread distribution.
+4. Tkinter. Normally included into standard CPython distribution.
 
 ## Installation and Usage
 
