@@ -26,7 +26,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.19.14.16'
+__version__ = '2.19.26.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -62,7 +62,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
         │ NOTE: with 0 overhead filter never goes  │
         │ out of image list index, so I don't need │
         │ separate src for repeat edge, it's kept  │
-        │ here just as a pattern for reference.    │
+        │ here just to have a complete picture.    │
         └──────────────────────────────────────────┘ """
 
     def cx_r(x: int | float) -> int:
@@ -113,7 +113,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             b_sum += b
             if (abs(r - (r_sum / number)) > threshold_x) or (abs(g - (g_sum / number)) > threshold_x) or (abs(b - (b_sum / number)) > threshold_x) or (x == (X - 1 + x_overhead)):
                 for i in range(x_start, x - 1, 1):
-                    medimage[y][cx(i)] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
+                    medimage[y][cx(i)] = [r_sum // number, g_sum // number, b_sum // number]
                 medimage[y][cx(x)] = [r, g, b]
                 x_start = x  # Redefining start of new inner loop until threshold
                 number = 1
@@ -135,7 +135,7 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
             b_sum += b
             if (abs(r - (r_sum / number)) > threshold_y) or (abs(g - (g_sum / number)) > threshold_y) or (abs(b - (b_sum / number)) > threshold_y) or (y == (Y - 1 + y_overhead)):
                 for i in range(y_start, y - 1, 1):
-                    resultimage[cy(i)][x] = [int(r_sum / number), int(g_sum / number), int(b_sum / number)]
+                    resultimage[cy(i)][x] = [r_sum // number, g_sum // number, b_sum // number]
                 resultimage[cy(y)][x] = [r, g, b]
                 y_start = y  # Redefining start of new inner loop until threshold
                 number = 1
