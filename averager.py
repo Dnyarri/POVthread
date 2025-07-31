@@ -3,11 +3,11 @@
 """Adaptive color average image filtering.
 -------------------------------------------
 
-Average image colors in a pixel row until difference between averaged and next pixel in row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
+Average image colors in a pixel row until difference between averaged and next pixel in a row reaches threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
 
 Input: PNG, PPM, PGM.
 
-Output: PNG, PPM.
+Output: PNG, PPM, PGM.
 
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.19.14.16'
+__version__ = '2.20.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -47,10 +47,9 @@ from tkinter import BooleanVar, Button, Checkbutton, Frame, IntVar, Label, Menu,
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
+from filter import avgrow
 from pypng.pnglpng import list2png, png2list
 from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
-
-from filter import avgrow
 
 """ ┌────────────┐
     │ GUI events │
@@ -89,7 +88,7 @@ def UINormal() -> None:
 def UIBusy() -> None:
     """Busy UI state, buttons disabled"""
     for widget in frame_top.winfo_children():
-        if widget.winfo_class() in ('Label', 'Button', 'Spinbox'):
+        if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget.config(state='disabled')
         if widget.winfo_class() == 'Button':
             widget.config(cursor='arrow')
@@ -397,8 +396,8 @@ frame_preview.pack(side='top')
     └─────────────────────-┘ """
 
 # File and menu
-butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 10), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
-butt01.pack(side='left', padx=(0, 10), pady=0, fill='both')
+butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
+butt01.pack(side='left', padx=(0, 10), pady=0, fill='x')
 
 menu02 = Menu(butt01, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
@@ -414,31 +413,32 @@ butt01.config(menu=menu02)
 
 # Filter section begins
 info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
-info00.pack(side='left', padx=(0, 4), pady=0, fill='both')
+info00.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # X-pass threshold control
-info01 = Label(frame_top, text='X:', font=('helvetica', 10), justify='left', state='disabled')
-info01.pack(side='left', padx=0, pady=0, fill='both')
+info01 = Label(frame_top, text='X:', font=('helvetica', 11), justify='left', state='disabled')
+info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3)
-spin01.pack(side='left', padx=(0, 4), pady=0, fill='both')
+spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # Y-pass threshold control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 10), justify='left', state='disabled')
-info02.pack(side='left', padx=0, pady=0, fill='both')
+info02 = Label(frame_top, text='Y:', font=('helvetica', 11), justify='left', state='disabled')
+info02.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3)
-spin02.pack(side='left', padx=(0, 4), pady=0, fill='both')
+spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
+# Wrap around control
 ini_wraparound = BooleanVar(value=False)
-check01 = Checkbutton(frame_top, text='Wrap\naround', font=('helvetica', 8), justify='left', variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
-check01.pack(side='left', padx=0, pady=0)
+check01 = Checkbutton(frame_top, text='Wrap \naround', font=('helvetica', 8), justify='left', variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
+check01.pack(side='left', padx=(4, 0), pady=0)
 
-# Filter start
-butt02 = Button(frame_top, text='Filter'.center(10, ' '), font=('helvetica', 10), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
-butt02.pack(side='left', padx=(20, 0), pady=0, fill='both')
+# Filter button
+butt02 = Button(frame_top, text='Filter'.center(10, ' '), font=('helvetica', 12), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
+butt02.pack(side='left', padx=(10, 0), pady=0, fill='x')
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │

@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.19.25.9'
+__version__ = '1.20.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -385,8 +385,8 @@ frame_preview.pack(side='top')
     └─────────────────────-┘ """
 
 # File and menu
-butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 10), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
-butt01.pack(side='left', padx=(0, 10), pady=0, fill='both')
+butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
+butt01.pack(side='left', padx=(0, 10), pady=0, fill='x')
 
 menu02 = Menu(butt01, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
@@ -402,26 +402,26 @@ butt01.config(menu=menu02)
 
 # Filter section begins
 info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
-info00.pack(side='left', padx=(0, 4), pady=0, fill='both')
+info00.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # X-pass threshold control
 info01 = Label(frame_top, text='X:', font=('helvetica', 10), justify='left', state='disabled')
-info01.pack(side='left', padx=0, pady=0, fill='both')
+info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3)
-spin01.pack(side='left', padx=(0, 4), pady=0, fill='both')
+spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # Y-pass threshold control
 info02 = Label(frame_top, text='Y:', font=('helvetica', 10), justify='left', state='disabled')
 info02.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3)
-spin02.pack(side='left', padx=(0, 4), pady=0, fill='both')
+spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # Filter start
-butt02 = Button(frame_top, text='Filter', font=('helvetica', 10), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
+butt02 = Button(frame_top, text='Filter', font=('helvetica', 12), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
 butt02.pack(side='left', padx=0, pady=0, fill='both')
 
 """ ┌──────────────────────────────┐
