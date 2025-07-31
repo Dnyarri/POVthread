@@ -28,7 +28,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.19.25.9'
+__version__ = '1.20.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -95,7 +95,7 @@ def linen(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -
             'Persistence of Vision Ray Tracer Scene Description File\n',
             'Version: 3.7\n',
             'Description: Mosaic picture simulating textile, linen pattern\n',
-            f'Source image properties: Width {X} px, Height {Y} px, Colors per channel: {maxcolors}\n',
+            f'Source image properties: Width {X} px, Height {Y} px, Number of channels: {Z}, Colors per channel: {maxcolors}\n',
             f'File automatically generated at {localtime} by {__name__} module ver. {__version__}\n',
             'developed by Ilya Razmanov aka Ilyich the Toad\n',
             '   https://dnyarri.github.io\n',
