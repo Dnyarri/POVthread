@@ -20,7 +20,9 @@ History:
 
 2.19.14.16  Wrap around processing introduced.
 
-3.20.1.1    Rewriting with map to correctly support L. No force RGB anymore.
+3.20.1.1    Substantial rewriting with `map` to correctly support L. No force RGB anymore.
+
+3.20.7.14   Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
 
 """
 
@@ -28,12 +30,12 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.20.1.1'
+__version__ = '3.20.7.14'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
-from operator import add, floordiv
+from operator import add, floordiv  # Operator in `map` seem to work ca. 7% faster than lambda
 
 
 def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
@@ -44,30 +46,28 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
     return new_image
 
 
-def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: int, wrap_around: bool = False) -> list[list[list[int]]]:
+def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: int, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
     """Average image pixels in a row until borderline threshold met, then repeat in a column."""
 
-    Y = len(sourceimage)
-    X = len(sourceimage[0])
-    Z = len(sourceimage[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     if Z == 1 or Z == 3:
         Z_COLOR = Z
     else:
         Z_COLOR = Z - 1  # Color channels without alpha
 
-    # Creating empty intermediate image
-    medimage = create_image(X, Y, Z_COLOR)
-
-    # Creating empty final image
-    resultimage = create_image(X, Y, Z_COLOR)
+    # ↓ Creating empty intermediate and final images
+    intermediate_image = create_image(X, Y, Z)
+    result_image = create_image(X, Y, Z)
 
     """ ┌──────────────────────────────────────────┐
         │ Coordinates for reading and writing.     │
         │ NOTE: with 0 overhead filter never goes  │
-        │ out of image list index, so I don't need │
-        │ separate src for repeat edge, it's kept  │
-        │ here just as a pattern for reference.    │
+        │ out of image list index, so separate src │
+        │ for repeat edge is unnecessary, it's     │
+        │ kept here just for reference and reuse.  │
         └──────────────────────────────────────────┘ """
 
     def cx_r(x: int | float) -> int:
@@ -90,7 +90,8 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
         cy = int(y) % Y  # y wrap around
         return cy
 
-    cx = cx_w  # wrap around, with overhead = 0 works "as is"
+    # ↓ setting wrap around as default, with overhead = 0 it works like "as is"
+    cx = cx_w
     cy = cy_w
 
     if wrap_around:  # Threshold may never be met, yet loop must be stopped somewhere.
@@ -102,51 +103,67 @@ def filter(sourceimage: list[list[list[int]]], threshold_x: int, threshold_y: in
     """ ┌─────────────────┐
         │ Horizontal pass │
         └─────────────────┘ """
+    number: int  # Have to be declared somehow in order to define function below
+
+    def _criterion_x(channel: int, channel_sum: int) -> bool:  # Defined function seem to work ca. 5% faster than lambda
+        """Threshold criterion for x"""
+        return abs(channel - (channel_sum / number)) > threshold_x  # Uses outer scope `number` and `threshold_x`
+
     for y in range(0, Y, 1):
-        pixels_sum = pixel = sourceimage[0][0]
+        pixel = source_image[0][0]
+        pixels_sum = pixel
         x_start = 0  # Defining start of inner loop until threshold
         number = 1
         for x in range(0, X + x_overhead, 1):
-            pixel = sourceimage[cy(y)][cx(x)]
+            pixel = source_image[cy(y)][cx(x)]
             number += 1
-            pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging
-            if (True in list(map(lambda c, s: abs(c - (s / number)) > threshold_x, pixel, pixels_sum))) or (x == (X - 1 + x_overhead)):
-                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z_COLOR))  # Inner loop result
+            pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging - adding up
+            if (True in list(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR]))) or (x == (X - 1 + x_overhead)):
+                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))  # Inner loop result
                 for i in range(x_start, x - 1, 1):
-                    medimage[y][cx(i)] = average_pixel
+                    intermediate_image[y][cx(i)] = average_pixel
                 x_start = x  # Redefining start of new inner loop until threshold
                 number = 1
                 pixels_sum = pixel
-            medimage[y][cx(x)] = pixel  # Edge pixel
+            intermediate_image[y][cx(x)] = pixel  # Edge pixel
 
     """ ┌───────────────┐
         │ Vertical pass │
         └───────────────┘ """
+
+    def _criterion_y(channel: int, channel_sum: int) -> bool:
+        """Threshold criterion for y"""
+        return abs(channel - (channel_sum / number)) > threshold_y  # Uses outer scope `number` and `threshold_y`
+
     for x in range(0, X, 1):
-        pixels_sum = pixel = medimage[0][0]
+        pixel = intermediate_image[0][0]
+        pixels_sum = pixel
         y_start = 0  # Defining start of inner loop until threshold
         number = 1
         for y in range(0, Y + y_overhead, 1):
-            pixel = medimage[cy(y)][cx(x)]
+            pixel = intermediate_image[cy(y)][cx(x)]
             number += 1
-            pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging
-            if (True in list(map(lambda c, s: abs(c - (s / number)) > threshold_y, pixel, pixels_sum))) or (y == (Y - 1 + y_overhead)):
-                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z_COLOR))  # Inner loop result
+            pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging - adding up
+            if (True in list(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR]))) or (y == (Y - 1 + y_overhead)):
+                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))  # Inner loop result
                 for i in range(y_start, y - 1, 1):
-                    resultimage[cy(i)][x] = average_pixel
+                    result_image[cy(i)][x] = average_pixel
                 y_start = y  # Redefining start of new inner loop until threshold
                 number = 1
                 pixels_sum = pixel
-            resultimage[cy(y)][x] = pixel  # Edge pixel
+            result_image[cy(y)][x] = pixel  # Edge pixel
 
-    """ ┌────────────────────────────────────────────┐
-        │ Protect alpha if exist, then return result │
-        └────────────────────────────────────────────┘ """
+    """ ┌────────────────┐
+        │ Alpha handling │
+        └────────────────┘ """
     if Z == 1 or Z == 3:
-        return resultimage
-    else:  # Unpack filtered color channels and add source alpha to list
-        resultimage_plus_alpha = [[[*resultimage[y][x], sourceimage[y][x][Z - 1]] for x in range(X)] for y in range(Y)]
-        return resultimage_plus_alpha
+        return result_image
+    else:
+        if keep_alpha:
+            resultimage_plus_alpha = [[[*result_image[y][x][:Z_COLOR], source_image[y][x][Z_COLOR]] for x in range(X)] for y in range(Y)]  # Unpacking result_image pixels, overwriting alpha, and packing back
+            return resultimage_plus_alpha
+        else:
+            return result_image
 
 
 if __name__ == '__main__':

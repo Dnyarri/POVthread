@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.20.1.1'
+__version__ = '1.20.7.14'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -43,13 +43,16 @@ __status__ = 'Production'
 from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
-from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk, filedialog
+from time import ctime
+from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
+
+from pypng.pnglpng import png2list
+from pypnm.pnmlpnm import list2bin, pnm2list
 
 from export import linen, stitch
 from filter import avgrow
-from pypng.pnglpng import png2list
-from pypnm.pnmlpnm import list2bin, pnm2list
 
 """ ┌────────────┐
     │ GUI events │
@@ -68,10 +71,14 @@ def ShowMenu(event) -> None:
 
 def ShowInfo(event=None) -> None:
     """Show image information"""
+    file_size = Path(sourcefilename).stat().st_size
+    file_size_str = f'{file_size / 1024:.2f} Kb' if (file_size > 1024) else f'{file_size} bytes'
+    modification_str = ctime(Path(sourcefilename).stat().st_mtime)
+    channels_str = f'{Z} channel' if Z == 1 else f'{Z} channels'
     showinfo(
         title='Image information',
-        message=f'File: {sourcefilename}',
-        detail=f'Image: X={X}, Y={Y}, Z={Z}, maxcolors={maxcolors}',
+        message=f'File properties:\nLocation: {sourcefilename}\nSize: {file_size_str}\nLast modified: {modification_str}',
+        detail=f'Image properties, as internally represented by program:\nWidth: {X} px\nHeight: {Y} px\nChannels: {channels_str}\nColor depth: {maxcolors + 1} gradations/channel',
     )
 
 
@@ -79,9 +86,9 @@ def UINormal() -> None:
     """Normal UI state, buttons enabled"""
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox'):
-            widget.config(state='normal')
+            widget['state'] = 'normal'
         if widget.winfo_class() == 'Button':
-            widget.config(cursor='hand2')
+            widget['cursor'] = 'hand2'
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
 
 
@@ -89,9 +96,9 @@ def UIBusy() -> None:
     """Busy UI state, buttons disabled"""
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox'):
-            widget.config(state='disabled')
+            widget['state'] = 'disabled'
         if widget.winfo_class() == 'Button':
-            widget.config(cursor='arrow')
+            widget['cursor'] = 'arrow'
     info_string.config(text=info_busy['txt'], foreground=info_busy['fg'], background=info_busy['bg'])
     sortir.update()
 
@@ -106,12 +113,12 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
         preview = preview.zoom(
             zoom_factor + 1,
         )
-        label_zoom.config(text=f'Zoom {zoom_factor + 1}:1')
+        label_zoom['text'] = f'Zoom {zoom_factor + 1}:1'
     else:
         preview = preview.subsample(
             1 - zoom_factor,
         )
-        label_zoom.config(text=f'Zoom 1:{1 - zoom_factor}')
+        label_zoom['text'] = f'Zoom 1:{1 - zoom_factor}'
 
     zanyato.config(text=caption, font=('helvetica', 8), image=preview, compound='top', padx=0, pady=0, justify='center', background=zanyato.master['background'], relief='flat', borderwidth=1, state='normal')
 
@@ -129,7 +136,7 @@ def GetSource(event=None) -> None:
     is_filtered = False
     is_saved = False
 
-    sourcefilename = filedialog.askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
     if sourcefilename == '':
         return
 
@@ -203,7 +210,7 @@ def GetSource(event=None) -> None:
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
     # updating zoom label display
-    label_zoom.config(text='Zoom 1:1')
+    label_zoom['text'] = 'Zoom 1:1'
     # enabling "Filter"
     UINormal()
 
@@ -223,9 +230,7 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
-    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y)
-
-    UINormal()
+    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
 
     # preview result
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
@@ -238,10 +243,11 @@ def RunFilter(event=None) -> None:
     ShowPreview(preview_filtered, 'Result')
 
     # enabling zoom
-    label_zoom.config(state='normal')
+    label_zoom['state'] = 'normal'
     butt_plus.config(state='normal', cursor='hand2')
     # binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
+    UINormal()
 
 
 def zoomIn(event=None) -> None:
@@ -300,7 +306,7 @@ def SwitchView(event=None) -> None:
 
 def SaveAsLinen() -> None:
     """Once pressed on Linen"""
-    savefilename = filedialog.asksaveasfilename(
+    savefilename = asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[
             ('POV-Ray file', '.pov'),
@@ -325,7 +331,7 @@ def SaveAsLinen() -> None:
 
 def SaveAsStitch() -> None:
     """Once pressed on Linen"""
-    savefilename = filedialog.asksaveasfilename(
+    savefilename = asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[
             ('POV-Ray file', '.pov'),
@@ -398,7 +404,7 @@ menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled'
 menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
-butt01.config(menu=menu02)
+butt01['menu'] = menu02
 
 # Filter section begins
 info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
