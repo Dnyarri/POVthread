@@ -34,7 +34,7 @@ Programs distribution is rather self-contained and is supposed to run right out 
 
 ## Averager
 
-[**Averager.py**](https://github.com/Dnyarri/POVthread/blob/main/averager.py) was initially created as an accessory for preprocessing source PNG files. It averages image colors (L, LA, RGB, RGBA) within linear or squarish areas between contrast edges, providing color reduction somewhat similar to used in real cross stitch where single thread is used to produce several stitches in a row.
+[**Averager.py**](https://github.com/Dnyarri/POVthread/blob/main/Averager.py) was initially created as an accessory for preprocessing source PNG files. It averages image colors (L, LA, RGB, RGBA) within linear or squarish areas between contrast edges, providing color reduction somewhat similar to used in real cross stitch where single thread is used to produce several stitches in a row.
 
 Later this filtering module was added to *POVRayThread*, making *Averager* redundant; however, it is still included into distribution as an illustration of 100% pure Python image filtering program, working at quite acceptable speed without any large third-party C packages.
 
