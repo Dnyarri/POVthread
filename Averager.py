@@ -5,9 +5,9 @@
 
 Average image colors in a pixel row until difference between averaged and next pixel in row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
 
-Input: PNG, PPM, PGM.
+Input: PNG, PPM, PGM, PBM.
 
-Output: PNG, PPM.
+Output: PNG, PPM, PGM.
 
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
@@ -24,7 +24,7 @@ History:
 
 2.16.20.20  Changed GUI to menus.
 
-3.20.6.8    Changed GUI to grid to fit all new features. More detailed image info; image edited/saved status displayed as "*" a-la Photoshop.
+3.20.7.14   Changed GUI to grid to fit all new features. More detailed image info; image edited/saved status displayed as "*" a-la Photoshop.
 
 ----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.20.7.14'
+__version__ = '3.20.8.10'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -93,6 +93,7 @@ def UINormal() -> None:
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
     if Z == 1 or Z == 3:
         check02['state'] = 'disabled'
+    butt02.focus_set()
 
 
 def UIBusy() -> None:
@@ -128,7 +129,7 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
 
 def GetSource(event=None) -> None:
     """Opening source image and redefining other controls state"""
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_title
     global preview
     global X, Y, Z, maxcolors, image3D, info, sourcefilename
     global source_image3D, preview_src, preview_filtered  # deep copy of source data and copies of preview
@@ -210,7 +211,17 @@ def GetSource(event=None) -> None:
     # ↓ updating zoom label display
     label_zoom['text'] = 'Zoom 1:1'
     # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{"*" if is_filtered else ""}')
+    if Z == 1:
+        color_title = ' (L)'
+    elif Z == 2:
+        color_title = ' (LA)'
+    elif Z == 3:
+        color_title = ' (RGB)'
+    elif Z == 4:
+        color_title = ' (RGBA)'
+    else:
+        color_title = ''
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     UINormal()
@@ -218,7 +229,7 @@ def GetSource(event=None) -> None:
 
 def RunFilter(event=None) -> None:
     """Filtering image, and previewing"""
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_title
     global preview, preview_filtered
     global X, Y, Z, maxcolors, image3D, info
 
@@ -258,7 +269,7 @@ def RunFilter(event=None) -> None:
     # ↓ binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
     # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{"*" if is_filtered else ""}')
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
@@ -319,7 +330,7 @@ def SwitchView(event=None) -> None:
 
 def Save(event=None) -> None:
     """Once pressed on Save"""
-    global is_filtered, is_saved, info_normal
+    global is_filtered, is_saved, info_normal, color_title
 
     if is_saved:  # block repetitive saving
         return
@@ -338,14 +349,14 @@ def Save(event=None) -> None:
     is_filtered = False
     menu02.entryconfig('Save', state='disabled')
     # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{"*" if is_filtered else ""}')
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
 
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
-    global sourcefilename, is_saved, is_filtered, info_normal
+    global sourcefilename, is_saved, is_filtered, info_normal, color_title
 
     # ↓ Adjusting "Save to" formats to be displayed according to bitdepth
     if Z < 3:
@@ -374,7 +385,7 @@ def SaveAs(event=None) -> None:
     is_filtered = False
     menu02.entryconfig('Save', state='disabled')
     # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{"*" if is_filtered else ""}')
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
@@ -397,6 +408,7 @@ sortir.minsize(360, 100)
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
+color_title = ' '
 
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
@@ -431,6 +443,7 @@ menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
 butt01['menu'] = menu02
+butt01.focus_set()
 
 # ↓ Filter section begins
 info00 = Label(frame_top, text='Filtering threshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
