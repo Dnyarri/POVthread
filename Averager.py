@@ -24,7 +24,7 @@ History:
 
 2.16.20.20  Changed GUI to menus.
 
-3.20.7.14   Changed GUI to grid to fit all new features. More detailed image info; image edited/saved status displayed as "*" a-la Photoshop.
+3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info; image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
 
 ----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.20.8.10'
+__version__ = '3.20.8.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
