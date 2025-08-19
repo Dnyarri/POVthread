@@ -55,11 +55,8 @@ def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) 
         ╚═══════════════╝ """
 
     def src(x: int | float, y: int | float, z: int) -> int:
-        """
-        Analog of src from FilterMeister, force repeat edge instead of out of range.
-        Returns int channel value z for pixel x, y.
-
-        """
+        """Analog of src from FilterMeister, force repeat edge instead of out of range.
+        Returns int channel value z for pixel x, y."""
 
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))

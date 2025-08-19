@@ -24,7 +24,8 @@ History:
 
 2.16.20.20  Changed GUI to menus.
 
-3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info; image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
+3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
+image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
 
 ----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
@@ -37,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.20.8.8'
+__version__ = '3.20.20.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -55,36 +56,38 @@ from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
 
 from filter import avgrow
 
-""" ┌────────────┐
-    │ GUI events │
-    └────-───────┘ """
+""" ╔══════════════════════════════════╗
+    ║ GUI events and functions thereof ║
+    ╚══════════════════════════════════╝ """
 
 
 def DisMiss(event=None) -> None:
     """Kill dialog and continue"""
+
     sortir.destroy()
 
 
 def ShowMenu(event) -> None:
     """Pop menu up (or sort of drop it down)"""
+
     menu02.post(event.x_root, event.y_root)
 
 
 def ShowInfo(event=None) -> None:
     """Show image information"""
+
     file_size = Path(sourcefilename).stat().st_size
-    file_size_str = f'{file_size / 1024:.2f} Kb' if (file_size > 1024) else f'{file_size} bytes'
-    modification_str = ctime(Path(sourcefilename).stat().st_mtime)
-    channels_str = f'{Z} channel' if Z == 1 else f'{Z} channels'
+    file_size_str = f'{file_size / 1048576:.2f} Mb' if (file_size > 1048576) else f'{file_size / 1024:.2f} Kb' if (file_size > 1024) else f'{file_size} bytes'
     showinfo(
         title='Image information',
-        message=f'File properties:\nLocation: {sourcefilename}\nSize: {file_size_str}\nLast modified: {modification_str}',
-        detail=f'Image properties, as internally represented by program:\nWidth: {X} px\nHeight: {Y} px\nChannels: {channels_str}\nColor depth: {maxcolors + 1} gradations/channel',
+        message=f'File properties:\nLocation: {sourcefilename}\nSize: {file_size_str}\nLast modified: {ctime(Path(sourcefilename).stat().st_mtime)}',
+        detail=f'Image properties, as represented internally:\nWidth: {X} px\nHeight: {Y} px\nChannels: {Z} channel{"s" if Z > 1 else ""}\nColor depth: {maxcolors + 1} gradations/channel',
     )
 
 
 def UINormal() -> None:
     """Normal UI state, buttons enabled"""
+
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget['state'] = 'normal'
@@ -93,11 +96,11 @@ def UINormal() -> None:
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
     if Z == 1 or Z == 3:
         check02['state'] = 'disabled'
-    butt02.focus_set()
 
 
 def UIBusy() -> None:
     """Busy UI state, buttons disabled"""
+
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget['state'] = 'disabled'
@@ -109,30 +112,35 @@ def UIBusy() -> None:
 
 def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
     """Show preview_name PhotoImage with caption below"""
+
     global zoom_factor, preview
 
     preview = preview_name
 
-    if zoom_factor >= 0:
+    if zoom_factor > 0:
         preview = preview.zoom(
             zoom_factor + 1,
         )
         label_zoom['text'] = f'Zoom {zoom_factor + 1}:1'
-    else:
+    elif zoom_factor < 0:
         preview = preview.subsample(
             1 - zoom_factor,
         )
         label_zoom['text'] = f'Zoom 1:{1 - zoom_factor}'
+    else:
+        preview = preview_name
+        label_zoom['text'] = 'Zoom 1:1'
 
     zanyato.config(text=caption, font=('helvetica', 8), image=preview, compound='top', padx=0, pady=0, justify='center', background=zanyato.master['background'], relief='flat', borderwidth=1, state='normal')
 
 
 def GetSource(event=None) -> None:
-    """Opening source image and redefining other controls state"""
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_title
-    global preview
+    """Open source image and redefine other controls state"""
+
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
+    global preview, preview_src, preview_filtered  # preview and copies of preview
     global X, Y, Z, maxcolors, image3D, info, sourcefilename
-    global source_image3D, preview_src, preview_filtered  # deep copy of source data and copies of preview
+    global source_image3D  # deep copy of source data, to be used as a source for filtering
 
     zoom_factor = 0
     view_src = True
@@ -146,24 +154,20 @@ def GetSource(event=None) -> None:
 
     """ ┌────────────────────────────────────────┐
         │ Loading file, converting data to list. │
-        │  NOTE: maxcolors, image3D are GLOBALS! │
-        │  They are used during saving!          │
+        │ NOTE: maxcolors, image3D, info MUST be │
+        │ GLOBALS! They are used during saving!  │
         └────────────────────────────────────────┘ """
 
     if Path(sourcefilename).suffix == '.png':
-        # ↓ Reading image as list
+        # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
     elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm'):
-        # ↓ Reading image as list
+        # ↓ Reading PNM image as list
         X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
-        # ↓ Creating dummy info needed for possible resaving as PNG later
-        info = {}
-        # ↓ Fixing color mode. The rest is fixed with pnglpng v. 25.01.07.
-        if maxcolors > 255:
-            info['bitdepth'] = 16
-        else:
-            info['bitdepth'] = 8
+        # ↓ Creating dummy info required to correctly Save As PNG later.
+        #   Fixing color mode, the rest is fixed with pnglpng v. 25.01.07.
+        info = {'bitdepth': 16} if maxcolors > 255 else {'bitdepth': 8}
 
     else:
         raise ValueError('Extension not recognized')
@@ -174,15 +178,15 @@ def GetSource(event=None) -> None:
         └────────────────────────────────────────────┘ """
     source_image3D = deepcopy(image3D)
 
-    """ ┌─────────────────────────────────────────────────────────────────────────┐
-        │ Converting list to bytes of PPM-like structure "preview_data" in memory │
-        └────────────────────────────────────────────────────────────────────────-┘ """
+    """ ┌───────────────┐
+        │ Viewing image │
+        └───────────────┘ """
+    # ↓ Converting list to bytes of PNM-like structure "preview_data" in memory
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
-
-    """ ┌────────────────────────────────────────────────┐
-        │ Now showing "preview_data" bytes using Tkinter │
-        └────────────────────────────────────────────────┘ """
+    # ↓ Now generating preview from "preview_data" bytes using Tkinter
     preview = PhotoImage(data=preview_data)
+    # ↓ Finally the show part
+    ShowPreview(preview, 'Source')
 
     """ ┌─────────────────────────────────────────────┐
         │ Creating copy of source preview for further │
@@ -190,9 +194,12 @@ def GetSource(event=None) -> None:
         └─────────────────────────────────────────────┘ """
     preview_src = preview_filtered = preview
 
-    ShowPreview(preview, 'Source')
+    # ↓ Attempt to zoom to fit. Singe zoomOut() must fit for a reasonable image size.
+    #   GUI X extra = 8 px, GUI Y extra = 150 px
+    if X + 16 > sortir.winfo_screenwidth() or Y + 152 > sortir.winfo_screenheight():
+        zoomOut()
 
-    # ↓ binding zoom on preview click
+    # ↓ binding on preview click
     zanyato.bind('<Control-Button-1>', zoomIn)  # Ctrl + left click
     zanyato.bind('<Double-Control-Button-1>', zoomIn)  # Ctrl + left click too fast
     zanyato.bind('<Alt-Button-1>', zoomOut)  # Alt + left click
@@ -204,36 +211,35 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<Return>', RunFilter)
     # ↓ enabling save
     menu02.entryconfig('Save as...', state='normal')
-
     # ↓ enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
-    # ↓ updating zoom label display
-    label_zoom['text'] = 'Zoom 1:1'
-    # ↓ Adding filename to window title a-la Photoshop
+    # ↓ Adding filename, mode and status to window title a-la Photoshop
     if Z == 1:
-        color_title = ' (L)'
+        color_mode_str = ' (L)'
     elif Z == 2:
-        color_title = ' (LA)'
+        color_mode_str = ' (LA)'
     elif Z == 3:
-        color_title = ' (RGB)'
+        color_mode_str = ' (RGB)'
     elif Z == 4:
-        color_title = ' (RGBA)'
+        color_mode_str = ' (RGBA)'
     else:
-        color_title = ''
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
+        color_mode_str = ''  # Just in case
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     UINormal()
+    butt02.focus_set()  # moving focus to "Filter"
 
 
 def RunFilter(event=None) -> None:
-    """Filtering image, and previewing"""
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_title
+    """Filter image, then preview result"""
+
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_filtered
     global X, Y, Z, maxcolors, image3D, info
 
-    # ↓ filtering part
+    # ↓ filtering parameters
     threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
     threshold_y = maxcolors * ini_threshold_y.get() // 255
     wraparound = ini_wraparound.get()
@@ -268,14 +274,17 @@ def RunFilter(event=None) -> None:
     sortir.bind_all('<Control-s>', Save)
     # ↓ binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
-    # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
+    zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
+    # ↓ Adding filename, mode and status to window title a-la Photoshop
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
+    zanyato.focus_set()  # moving focus to preview
 
 
 def zoomIn(event=None) -> None:
-    """Zooming preview in"""
+    """Zoom preview in"""
+
     global zoom_factor, view_src, preview
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
@@ -293,7 +302,8 @@ def zoomIn(event=None) -> None:
 
 
 def zoomOut(event=None) -> None:
-    """Zooming preview out"""
+    """Zoom preview out"""
+
     global zoom_factor, view_src, preview
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
 
@@ -311,7 +321,8 @@ def zoomOut(event=None) -> None:
 
 
 def zoomWheel(event) -> None:
-    """Starting zoomIn or zoomOut by mouse wheel"""
+    """zoomIn or zoomOut by mouse wheel"""
+
     if event.delta < 0:
         zoomOut()
     if event.delta > 0:
@@ -319,7 +330,8 @@ def zoomWheel(event) -> None:
 
 
 def SwitchView(event=None) -> None:
-    """Switching preview between preview_src and preview_filtered"""
+    """Switch preview between preview_src and preview_filtered"""
+
     global zoom_factor, view_src, preview
     view_src = not view_src
     if view_src:
@@ -330,7 +342,8 @@ def SwitchView(event=None) -> None:
 
 def Save(event=None) -> None:
     """Once pressed on Save"""
-    global is_filtered, is_saved, info_normal, color_title
+
+    global is_filtered, is_saved, info_normal, color_mode_str
 
     if is_saved:  # block repetitive saving
         return
@@ -339,36 +352,57 @@ def Save(event=None) -> None:
     resultfilename = sourcefilename
     UIBusy()
     # ↓ Save format choice
-    if Path(resultfilename).suffix == '.png':  # Explicitly setting compression
-        info['compression'] = 9
-        list2png(resultfilename, image3D, info)
+    if Path(resultfilename).suffix == '.png':
+        info['compression'] = 9  # Explicitly setting compression
+        list2png(resultfilename, image3D, info)  # Writing file
     elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
-        list2pnm(resultfilename, image3D, maxcolors)
+        list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
     is_filtered = False
     menu02.entryconfig('Save', state='disabled')
-    # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
+    # ↓ Adding filename, mode and status to window title a-la Photoshop
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
 
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
-    global sourcefilename, is_saved, is_filtered, info_normal, color_title
 
-    # ↓ Adjusting "Save to" formats to be displayed according to bitdepth
-    if Z < 3:
-        format = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
+    global sourcefilename, is_saved, is_filtered, info_normal, color_mode_str
+
+    # ↓ Adjusting "Save as" formats to be displayed
+    #   according to bitdepth and source extension
+    src_extension = Path(sourcefilename).suffix
+    if Z == 1:
+        if src_extension == '.pgm':
+            format_list = [('Portable grey map', '.pgm'), ('Portable network graphics', '.png')]
+            proposed_name = Path(sourcefilename).stem + '.pgm'
+        else:
+            format_list = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
+            proposed_name = Path(sourcefilename).stem + '.png'
+    elif Z == 2:
+        format_list = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
+        proposed_name = Path(sourcefilename).stem + '.png'
+    elif Z == 3:
+        if src_extension == '.ppm':
+            format_list = [('Portable pixel map', '.ppm'), ('Portable network graphics', '.png')]
+            proposed_name = Path(sourcefilename).stem + '.ppm'
+        else:
+            format_list = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
+            proposed_name = Path(sourcefilename).stem + '.png'
     else:
-        format = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
+        format_list = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
+        proposed_name = Path(sourcefilename).stem + '.png'
 
     # ↓ Open export file
     resultfilename = asksaveasfilename(
         title='Save image file',
-        filetypes=format,
-        defaultextension=('PNG file', '.png'),
+        filetypes=format_list,
+        defaultextension='.png',  # No extension should never happen but just in case
+        initialdir=Path(sourcefilename).parent,
+        initialfile=proposed_name,
     )
     if resultfilename == '':
         return None
@@ -376,16 +410,18 @@ def SaveAs(event=None) -> None:
     # ↓ Save format choice
     if Path(resultfilename).suffix == '.png':
         info['compression'] = 9  # Explicitly setting compression
-        list2png(resultfilename, image3D, info)
+        list2png(resultfilename, image3D, info)  # Writing file
     elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
-        list2pnm(resultfilename, image3D, maxcolors)
-    sourcefilename = resultfilename
+        list2pnm(resultfilename, image3D, maxcolors)  # Writing file
+    else:
+        raise ValueError('Extension not recognized')
+    sourcefilename = resultfilename  # Now saved file becomes new source file
     # ↓ Flagging image as saved, not filtered, and disabling "Save"
     is_saved = True  # to block future repetitive saving
     is_filtered = False
     menu02.entryconfig('Save', state='disabled')
-    # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_title}{"*" if is_filtered else ""}')
+    # ↓ Adding filename, mode and status to window title a-la Photoshop
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
@@ -402,13 +438,12 @@ sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('Averager')
-sortir.geometry('+200+100')
 sortir.minsize(360, 100)
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
-color_title = ' '
+color_mode_str = ' '
 
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
@@ -443,7 +478,7 @@ menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
 butt01['menu'] = menu02
-butt01.focus_set()
+butt01.focus_set()  # Setting focus to "File..."
 
 # ↓ Filter section begins
 info00 = Label(frame_top, text='Filtering threshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
@@ -484,7 +519,7 @@ butt02.grid(row=0, column=6, rowspan=2, sticky='nsew', padx=(10, 0), pady=0)
     └─────────────────────────────-┘ """
 zanyato = Label(
     frame_preview,
-    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Enter to filter.\nWhen filtered, click to switch\nsource/result.',
+    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Enter to filter.\nWhen filtered, click or Space bar\nto switch source/result.',
     font=('helvetica', 12),
     justify='left',
     borderwidth=2,
@@ -493,7 +528,8 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
-zanyato.bind('<Double-Button-1>', GetSource)
+zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
+frame_preview.bind('<Double-Button-1>', GetSource)
 zanyato.pack(side='top')
 
 frame_zoom = Frame(frame_preview, width=300, borderwidth=2, relief='groove')
@@ -507,5 +543,9 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
+
+# ↓ Center window horizontally, +100 vertically
+sortir.update()
+sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
 sortir.mainloop()

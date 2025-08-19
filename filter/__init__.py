@@ -1,1 +1,1 @@
-"""Filter modules"""
+"""Image filtering module"""
