@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.20.20.1'
+__version__ = '1.21.2.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -94,6 +94,7 @@ def UINormal() -> None:
         if widget.winfo_class() == 'Button':
             widget['cursor'] = 'hand2'
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
+    sortir.update()
 
 
 def UIBusy() -> None:
@@ -212,6 +213,7 @@ def GetSource(event=None) -> None:
     info_normal = {'txt': f'{Path(sourcefilename).name} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     UINormal()
+    sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     butt02.focus_set()  # moving focus to "Filter"
 
 
@@ -373,7 +375,7 @@ sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('POV-Ray Thread')
-sortir.minsize(300, 100)
+sortir.minsize(320, 240)
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'POV-Ray Thread {__version__}', 'fg': 'grey', 'bg': 'grey90'}
@@ -389,16 +391,16 @@ sortir.bind_all('<Control-o>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
 
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
-frame_top.pack(side='top', anchor='nw', pady=(0, 2))
+frame_top.pack(side='top', anchor='n', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
-frame_preview.pack(side='top')
+frame_preview.pack(side='top', anchor='center', expand=True)
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
 
 # ↓ File and menu
-butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
+butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
 butt01.pack(side='left', padx=(0, 10), pady=0, fill='x')
 
 menu02 = Menu(butt01, tearoff=False)  # "File" menu
@@ -419,7 +421,7 @@ info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, '
 info00.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ X-pass threshold control
-info01 = Label(frame_top, text='X:', font=('helvetica', 10), justify='left', state='disabled')
+info01 = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
 info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
@@ -427,7 +429,7 @@ spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_thres
 spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Y-pass threshold control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 10), justify='left', state='disabled')
+info02 = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
 info02.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
@@ -435,7 +437,7 @@ spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_thres
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
-butt02 = Button(frame_top, text='Filter', font=('helvetica', 12), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
+butt02 = Button(frame_top, text='Filter', font=('helvetica', 12), cursor='arrow', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
 butt02.pack(side='left', padx=0, pady=0, fill='both')
 
 """ ┌──────────────────────────────┐
@@ -459,10 +461,10 @@ zanyato.pack(side='top')
 frame_zoom = Frame(frame_preview, width=300, borderwidth=2, relief='groove')
 frame_zoom.pack(side='bottom')
 
-butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', borderwidth=1, command=zoomIn)
+butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomIn)
 butt_plus.pack(side='left', padx=0, pady=0, fill='both')
 
-butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', borderwidth=1, command=zoomOut)
+butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomOut)
 butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')

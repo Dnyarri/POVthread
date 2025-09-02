@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.20.20.3'
+__version__ = '3.21.2.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -96,6 +96,7 @@ def UINormal() -> None:
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
     if Z == 1 or Z == 3:
         check02['state'] = 'disabled'
+    sortir.update()
 
 
 def UIBusy() -> None:
@@ -118,14 +119,10 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
     preview = preview_name
 
     if zoom_factor > 0:
-        preview = preview.zoom(
-            zoom_factor + 1,
-        )
+        preview = preview.zoom(zoom_factor + 1)
         label_zoom['text'] = f'Zoom {zoom_factor + 1}:1'
     elif zoom_factor < 0:
-        preview = preview.subsample(
-            1 - zoom_factor,
-        )
+        preview = preview.subsample(1 - zoom_factor)
         label_zoom['text'] = f'Zoom 1:{1 - zoom_factor}'
     else:
         preview = preview_name
@@ -216,19 +213,20 @@ def GetSource(event=None) -> None:
     butt_minus.config(state='normal', cursor='hand2')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
     if Z == 1:
-        color_mode_str = ' (L)'
+        color_mode_str = f' (L:{"8" if maxcolors < 256 else "16"})'
     elif Z == 2:
-        color_mode_str = ' (LA)'
+        color_mode_str = f' (LA:{"8" if maxcolors < 256 else "16"})'
     elif Z == 3:
-        color_mode_str = ' (RGB)'
+        color_mode_str = f' (RGB:{"8" if maxcolors < 256 else "16"})'
     elif Z == 4:
-        color_mode_str = ' (RGBA)'
+        color_mode_str = f' (RGBA:{"8" if maxcolors < 256 else "16"})'
     else:
         color_mode_str = ''  # Just in case
     sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     UINormal()
+    sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     butt02.focus_set()  # moving focus to "Filter"
 
 
@@ -383,7 +381,7 @@ def SaveAs(event=None) -> None:
             format_list = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
             proposed_name = Path(sourcefilename).stem + '.png'
     elif Z == 2:
-        format_list = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
+        format_list = [('Portable network graphics', '.png')]
         proposed_name = Path(sourcefilename).stem + '.png'
     elif Z == 3:
         if src_extension == '.ppm':
@@ -393,7 +391,7 @@ def SaveAs(event=None) -> None:
             format_list = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
             proposed_name = Path(sourcefilename).stem + '.png'
     else:
-        format_list = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
+        format_list = [('Portable network graphics', '.png')]
         proposed_name = Path(sourcefilename).stem + '.png'
 
     # ↓ Open export file
@@ -438,7 +436,8 @@ sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('Averager')
-sortir.minsize(360, 100)
+sortir.minsize(320, 240)
+sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
@@ -455,16 +454,16 @@ sortir.bind_all('<Control-o>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
 
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
-frame_top.pack(side='top', anchor='nw', pady=(0, 2))
+frame_top.pack(side='top', anchor='n', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
-frame_preview.pack(side='top')
+frame_preview.pack(side='top', anchor='center', expand=True)
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
 
 # ↓ File menu
-butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', justify='left', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
+butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
 butt01.grid(row=0, column=0, rowspan=2, sticky='ns', padx=(0, 10), pady=0)
 
 menu02 = Menu(butt01, tearoff=False)  # "File" menu
@@ -485,7 +484,7 @@ info00 = Label(frame_top, text='Filtering threshold:', font=('helvetica', 8, 'it
 info00.grid(row=0, column=1)
 
 # ↓ X-pass threshold control
-info01 = Label(frame_top, text='X:', font=('helvetica', 11), justify='left', state='disabled')
+info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
 info01.grid(row=0, column=2)
 
 ini_threshold_x = IntVar(value=16)
@@ -493,7 +492,7 @@ spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_thres
 spin01.grid(row=0, column=3)
 
 # ↓ Y-pass threshold control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 11), justify='left', state='disabled')
+info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
 info02.grid(row=0, column=4)
 
 ini_threshold_y = IntVar(value=8)
@@ -502,16 +501,16 @@ spin02.grid(row=0, column=5)
 
 # ↓ Wrap around control
 ini_wraparound = BooleanVar(value=False)
-check01 = Checkbutton(frame_top, text='Wrap around', font=('helvetica', 9), justify='left', variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
+check01 = Checkbutton(frame_top, text='Wrap around', font=('helvetica', 9), variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
 check01.grid(row=1, column=1, sticky='ws')
 
 # ↓ Keep alpha control
 ini_keep_alpha = BooleanVar(value=False)
-check02 = Checkbutton(frame_top, text='Keep alpha', font=('helvetica', 9), justify='left', variable=ini_keep_alpha, onvalue=True, offvalue=False, state='disabled')
+check02 = Checkbutton(frame_top, text='Keep alpha', font=('helvetica', 9), variable=ini_keep_alpha, onvalue=True, offvalue=False, state='disabled')
 check02.grid(row=1, column=3, columnspan=3, sticky='ws')
 
 # ↓ Filter start
-butt02 = Button(frame_top, text='Filter'.center(10, ' '), font=('helvetica', 12), cursor='arrow', justify='center', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
+butt02 = Button(frame_top, text='Filter'.center(10, ' '), font=('helvetica', 12), cursor='arrow', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
 butt02.grid(row=0, column=6, rowspan=2, sticky='nsew', padx=(10, 0), pady=0)
 
 """ ┌──────────────────────────────┐
@@ -532,13 +531,13 @@ zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
 frame_preview.bind('<Double-Button-1>', GetSource)
 zanyato.pack(side='top')
 
-frame_zoom = Frame(frame_preview, width=300, borderwidth=2, relief='groove')
+frame_zoom = Frame(frame_preview, borderwidth=2, relief='groove')
 frame_zoom.pack(side='bottom')
 
-butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', borderwidth=1, command=zoomIn)
+butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomIn)
 butt_plus.pack(side='left', padx=0, pady=0, fill='both')
 
-butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='arrow', justify='center', state='disabled', borderwidth=1, command=zoomOut)
+butt_minus = Button(frame_zoom, text='-', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomOut)
 butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
