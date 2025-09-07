@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.21.2.11'
+__version__ = '1.21.7.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -212,9 +212,11 @@ def GetSource(event=None) -> None:
     sortir.title(f'POV-Ray Thread: {Path(sourcefilename).name}')
     info_normal = {'txt': f'{Path(sourcefilename).name} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
+    butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
-    butt02.focus_set()  # moving focus to "Filter"
+    butt_filter.focus_set()  # moving focus to "Filter"
 
 
 def RunFilter(event=None) -> None:
@@ -377,6 +379,19 @@ sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii')
 sortir.title('POV-Ray Thread')
 sortir.minsize(320, 240)
 
+# ↓ Buttons dictionaries
+butt = {
+    'font': ('helvetica', 12),
+    'cursor': 'hand2',
+    'border': '2',
+    'relief': 'groove',
+    'overrelief': 'raised',
+    'foreground': 'SystemButtonText',
+    'background': 'SystemButtonFace',
+    'activeforeground': 'dark blue',
+    'activebackground': '#E5F1FB',
+}
+
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'POV-Ray Thread {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
@@ -400,10 +415,21 @@ frame_preview.pack(side='top', anchor='center', expand=True)
     └─────────────────────-┘ """
 
 # ↓ File and menu
-butt01 = Menubutton(frame_top, text='File...'.ljust(10, ' '), font=('helvetica', 12), cursor='hand2', state='normal', indicatoron=False, relief='raised', borderwidth=2, background='grey90', activebackground='grey98')
-butt01.pack(side='left', padx=(0, 10), pady=0, fill='x')
+butt_file = Menubutton(
+    frame_top,
+    text='File...'.ljust(10, ' '),
+    font=butt['font'],
+    cursor=butt['cursor'],
+    relief=butt['relief'],
+    activeforeground=butt['activeforeground'],
+    activebackground=butt['activebackground'],
+    border=butt['border'],
+    state='normal',
+    indicatoron=False,
+)
+butt_file.pack(side='left', padx=(0, 10), pady=0, fill='x')
 
-menu02 = Menu(butt01, tearoff=False)  # "File" menu
+menu02 = Menu(butt_file, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
 menu02.add_separator()
 menu02.add_command(label='Export Linen...', state='disabled', command=SaveAsLinen)
@@ -413,8 +439,12 @@ menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled'
 menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
-butt01['menu'] = menu02
-butt01.focus_set()  # Setting focus to "File..."
+butt_file['menu'] = menu02
+
+butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
+butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
+
+butt_file.focus_set()  # Setting focus to "File..."
 
 # ↓ Filter section begins
 info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
@@ -437,8 +467,20 @@ spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_thres
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
-butt02 = Button(frame_top, text='Filter', font=('helvetica', 12), cursor='arrow', state='disabled', relief='raised', borderwidth=2, background='grey90', activebackground='grey98', command=RunFilter)
-butt02.pack(side='left', padx=0, pady=0, fill='both')
+butt_filter = Button(
+    frame_top,
+    text='Filter',
+    font=butt['font'],
+    cursor='arrow',
+    relief=butt['relief'],
+    overrelief=butt['overrelief'],
+    activeforeground=butt['activeforeground'],
+    activebackground=butt['activebackground'],
+    border=butt['border'],
+    state='disabled',
+    command=RunFilter,
+)
+butt_filter.pack(side='left', padx=0, pady=0, fill='both')
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
@@ -472,6 +514,7 @@ label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
+# print(sortir.winfo_width(), sortir.winfo_height())
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
 sortir.mainloop()
