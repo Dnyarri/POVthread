@@ -23,10 +23,13 @@ Useful GUI features include mouse event handling:
 
 ## Prerequisite and Dependencies
 
-1. [Python](https://www.python.org/) 3.10 or above.
+1. [Python](https://www.python.org/) 3.11 or above.
 2. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current POV-Ray Thread distribution.
 3. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current POV-Ray Thread distribution.
 4. Tkinter. Normally included into standard CPython distribution.
+
+> [!NOTE]
+> Since POVRayThread 1.21.7.11 and Averager 3.21.7.11 PyPNM version included into distribution updated to [PyPNM "Victory 2" main](https://github.com/Dnyarri/PyPNM), intended to be used with Python 3.11 and above. The only actual limitation is that main version does not have a workaround for displaying 16 bpc images necessary for old Tkinter included into old CPython distributions. If you want bringing old Tkinter compatibility back, download [PyPNM extended compatibility version](https://github.com/Dnyarri/PyPNM/tree/py34) and plug it in manually.
 
 ## Installation and Usage
 

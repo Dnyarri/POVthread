@@ -145,7 +145,7 @@ def GetSource(event=None) -> None:
     view_src = True
     is_filtered = is_saved = False
 
-    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
     if sourcefilename == '':
         return
 
@@ -160,7 +160,7 @@ def GetSource(event=None) -> None:
         # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
-    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm'):
+    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
         X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
 

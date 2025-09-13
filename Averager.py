@@ -143,7 +143,7 @@ def GetSource(event=None) -> None:
     view_src = True
     is_filtered = is_saved = False
 
-    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm'), ('Portable network graphics', '.png'), ('Portable network map', '.ppm .pgm .pbm')])
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
     if sourcefilename == '':
         return
 
@@ -159,7 +159,7 @@ def GetSource(event=None) -> None:
         # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
-    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm'):
+    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
         X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
         # ↓ Creating dummy info required to correctly Save As PNG later.
@@ -355,7 +355,7 @@ def Save(event=None) -> None:
     if Path(resultfilename).suffix == '.png':
         info['compression'] = 9  # Explicitly setting compression
         list2png(resultfilename, image3D, info)  # Writing file
-    elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
+    elif Path(resultfilename).suffix in ('.ppm', '.pgm', '.pnm'):
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
@@ -376,7 +376,7 @@ def SaveAs(event=None) -> None:
     #   according to bitdepth and source extension
     src_extension = Path(sourcefilename).suffix
     if Z == 1:
-        if src_extension == '.pgm':
+        if src_extension in ('.pgm', '.pnm'):
             format_list = [('Portable grey map', '.pgm'), ('Portable network graphics', '.png')]
             proposed_name = Path(sourcefilename).stem + '.pgm'
         else:
@@ -386,7 +386,7 @@ def SaveAs(event=None) -> None:
         format_list = [('Portable network graphics', '.png')]
         proposed_name = Path(sourcefilename).stem + '.png'
     elif Z == 3:
-        if src_extension == '.ppm':
+        if src_extension in ('.ppm', '.pnm'):
             format_list = [('Portable pixel map', '.ppm'), ('Portable network graphics', '.png')]
             proposed_name = Path(sourcefilename).stem + '.ppm'
         else:
