@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.21.7.11'
+__version__ = '1.21.17.17'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -377,7 +377,6 @@ sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
 sortir.title('POV-Ray Thread')
-sortir.minsize(320, 240)
 
 # ↓ Buttons dictionaries
 butt = {
@@ -515,6 +514,7 @@ label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
 # print(sortir.winfo_width(), sortir.winfo_height())
+sortir.minsize(sortir.winfo_width(), 320)
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
 sortir.mainloop()
