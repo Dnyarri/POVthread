@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.21.17.17'
+__version__ = '3.21.19.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -586,7 +586,7 @@ label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
 # print(sortir.winfo_width(), sortir.winfo_height())
-sortir.minsize(sortir.winfo_width(), 320)
+sortir.minsize(frame_top.winfo_width(), 320)
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
