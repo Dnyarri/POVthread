@@ -129,6 +129,7 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
         label_zoom['text'] = 'Zoom 1:1'
 
     zanyato.config(text=caption, font=('helvetica', 8), image=preview, compound='top', padx=0, pady=0, justify='center', background=zanyato.master['background'], relief='flat', borderwidth=1, state='normal')
+    zanyato.pack_configure(pady=max(0, 16 - (preview.height() // 2)))
 
 
 def GetSource(event=None) -> None:
