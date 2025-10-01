@@ -35,7 +35,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.21.17.17'
+__version__ = '3.22.01.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -164,8 +164,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
             return resultimage_plus_alpha
         else:
             return result_image
+# ↑ filter finished
 
-
+# ↓ Dummy stub for standalone execution attempt
 if __name__ == '__main__':
     print('Module to be imported, not run as standalone.')
     need_help = input('Would you like to read some help (y/n)?')

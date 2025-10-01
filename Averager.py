@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.21.19.19'
+__version__ = '3.22.01.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -62,19 +62,19 @@ from filter import avgrow
 
 
 def DisMiss(event=None) -> None:
-    """Kill dialog and continue"""
+    """Kill dialog and continue."""
 
     sortir.destroy()
 
 
 def ShowMenu(event) -> None:
-    """Pop menu up (or sort of drop it down)"""
+    """Pop menu up (or sort of drop it down)."""
 
     menu02.post(event.x_root, event.y_root)
 
 
 def ShowInfo(event=None) -> None:
-    """Show image information"""
+    """Show image information."""
 
     file_size = Path(sourcefilename).stat().st_size
     file_size_str = f'{file_size / 1048576:.2f} Mb' if (file_size > 1048576) else f'{file_size / 1024:.2f} Kb' if (file_size > 1024) else f'{file_size} bytes'
@@ -86,7 +86,7 @@ def ShowInfo(event=None) -> None:
 
 
 def UINormal() -> None:
-    """Normal UI state, buttons enabled"""
+    """Normal UI state, buttons enabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
@@ -100,7 +100,7 @@ def UINormal() -> None:
 
 
 def UIBusy() -> None:
-    """Busy UI state, buttons disabled"""
+    """Busy UI state, buttons disabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
@@ -112,7 +112,7 @@ def UIBusy() -> None:
 
 
 def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
-    """Show preview_name PhotoImage with caption below"""
+    """Show preview_name PhotoImage with caption below."""
 
     global zoom_factor, preview
 
@@ -133,7 +133,7 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
 
 
 def GetSource(event=None) -> None:
-    """Open source image and redefine other controls state"""
+    """Open source image and redefine other controls state."""
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_src, preview_filtered  # preview and copies of preview
@@ -234,7 +234,7 @@ def GetSource(event=None) -> None:
 
 
 def RunFilter(event=None) -> None:
-    """Filter image, then preview result"""
+    """Filter image, then preview result."""
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_filtered
@@ -284,7 +284,7 @@ def RunFilter(event=None) -> None:
 
 
 def zoomIn(event=None) -> None:
-    """Zoom preview in"""
+    """Zoom preview in."""
 
     global zoom_factor, view_src, preview
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
@@ -303,7 +303,7 @@ def zoomIn(event=None) -> None:
 
 
 def zoomOut(event=None) -> None:
-    """Zoom preview out"""
+    """Zoom preview out."""
 
     global zoom_factor, view_src, preview
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
@@ -322,7 +322,7 @@ def zoomOut(event=None) -> None:
 
 
 def zoomWheel(event) -> None:
-    """zoomIn or zoomOut by mouse wheel"""
+    """zoomIn or zoomOut by mouse wheel."""
 
     if event.delta < 0:
         zoomOut()
@@ -331,7 +331,7 @@ def zoomWheel(event) -> None:
 
 
 def SwitchView(event=None) -> None:
-    """Switch preview between preview_src and preview_filtered"""
+    """Switch preview between preview_src and preview_filtered."""
 
     global zoom_factor, view_src, preview
     view_src = not view_src
@@ -342,7 +342,7 @@ def SwitchView(event=None) -> None:
 
 
 def Save(event=None) -> None:
-    """Once pressed on Save"""
+    """Once pressed on Save."""
 
     global is_filtered, is_saved, info_normal, color_mode_str
 
