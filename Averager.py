@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.01.11'
+__version__ = '3.22.08.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -209,6 +209,7 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<Return>', RunFilter)
     # ↓ enabling save
     menu02.entryconfig('Save as...', state='normal')
+    sortir.bind_all('<Control-Shift-S>', SaveAs)
     # ↓ enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
@@ -238,7 +239,7 @@ def RunFilter(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_filtered
-    global X, Y, Z, maxcolors, image3D, info
+    global X, Y, Z, maxcolors, image3D, source_image3D, info
 
     # ↓ filtering parameters
     threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
@@ -266,12 +267,7 @@ def RunFilter(event=None) -> None:
 
     # ↓ enabling save
     menu02.entryconfig('Save', state='normal')
-    menu02.entryconfig('Save as...', state='normal')
-    # ↓ enabling zoom
-    label_zoom['state'] = 'normal'
-    butt_plus.config(state='normal', cursor='hand2')
     # ↓ binding global
-    sortir.bind_all('<Control-Shift-S>', SaveAs)
     sortir.bind_all('<Control-s>', Save)
     # ↓ binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
@@ -345,6 +341,7 @@ def Save(event=None) -> None:
     """Once pressed on Save."""
 
     global is_filtered, is_saved, info_normal, color_mode_str
+    global source_image3D
 
     if is_saved:  # block repetitive saving
         return
@@ -358,6 +355,8 @@ def Save(event=None) -> None:
         list2png(resultfilename, image3D, info)  # Writing file
     elif Path(resultfilename).suffix in ('.ppm', '.pgm', '.pnm'):
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
+    # ↓ Now saved file becomes new source file
+    source_image3D = image3D
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
     is_filtered = False
@@ -372,6 +371,7 @@ def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
     global sourcefilename, is_saved, is_filtered, info_normal, color_mode_str
+    global source_image3D
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
@@ -416,7 +416,9 @@ def SaveAs(event=None) -> None:
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     else:
         raise ValueError('Extension not recognized')
-    sourcefilename = resultfilename  # Now saved file becomes new source file
+    # ↓ Now saved file becomes new source file
+    sourcefilename = resultfilename
+    source_image3D = image3D
     # ↓ Flagging image as saved, not filtered, and disabling "Save"
     is_saved = True  # to block future repetitive saving
     is_filtered = False

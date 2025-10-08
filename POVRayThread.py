@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.22.01.11'
+__version__ = '1.22.08.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -248,9 +248,6 @@ def RunFilter(event=None) -> None:
 
     ShowPreview(preview_filtered, 'Result')
 
-    # ↓ enabling zoom
-    label_zoom['state'] = 'normal'
-    butt_plus.config(state='normal', cursor='hand2')
     # ↓ binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
     zanyato.bind('<space>', SwitchView)  # "Space" key. May be worth binding whole sortir?

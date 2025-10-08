@@ -29,13 +29,15 @@ No force RGB anymore.
 3.20.20.3   Code harmonization. Lambdas completely replaced with operators
 and defined functions to improve speed.
 
+3.22.08.20  Map to list conversion removed wherever possible.
+
 """
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.01.11'
+__version__ = '3.22.08.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -116,7 +118,7 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
             number += 1
             pixel = source_image[cy(y)][cx(x)]
             pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging - adding up.
-            if (True in list(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR]))) or (x == (X - 1 + x_overhead)):
+            if any(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (x == (X - 1 + x_overhead)):
                 average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))  # Inner loop result.
                 for i in range(x_start, x - 1, 1):
                     intermediate_image[y][cx(i)] = average_pixel
@@ -143,7 +145,7 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
             number += 1
             pixel = intermediate_image[cy(y)][cx(x)]
             pixels_sum = list(map(add, pixel, pixels_sum))
-            if (True in list(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR]))) or (y == (Y - 1 + y_overhead)):
+            if any(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (y == (Y - 1 + y_overhead)):
                 average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))
                 for i in range(y_start, y - 1, 1):
                     result_image[cy(i)][x] = average_pixel
