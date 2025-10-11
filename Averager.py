@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.08.20'
+__version__ = '3.22.11.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -337,11 +337,36 @@ def SwitchView(event=None) -> None:
         ShowPreview(preview_filtered, 'Result')
 
 
+def onSave() -> None:
+    global sourcefilename, resultfilename, is_saved
+    global source_image3D, image3D, X, Y, Z, maxcolors
+    global preview_data, preview_filtered, preview_src, info_normal
+
+    sourcefilename = resultfilename  # Now saved file becomes new source file
+    source_image3D = deepcopy(image3D)
+    preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
+    preview_filtered = PhotoImage(data=preview_data)
+    preview_src = preview_filtered
+
+    # ↓ disabling save
+    menu02.entryconfig('Save', state='disabled')
+    sortir.unbind_all('<Control-s>')
+    # ↓ binding switch on preview click
+    zanyato.unbind('<Button-1>')  # left click
+    zanyato.unbind('<space>')  # # "Space" key. May be worth binding whole sortir?
+    # ↓ preview source
+    ShowPreview(preview_src, 'Source')
+    # ↓ Adding filename, mode and status to window title a-la Photoshop
+    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
+    UINormal()
+
+
 def Save(event=None) -> None:
     """Once pressed on Save."""
 
     global is_filtered, is_saved, info_normal, color_mode_str
-    global source_image3D
+    global source_image3D, sourcefilename, resultfilename
 
     if is_saved:  # block repetitive saving
         return
@@ -355,23 +380,19 @@ def Save(event=None) -> None:
         list2png(resultfilename, image3D, info)  # Writing file
     elif Path(resultfilename).suffix in ('.ppm', '.pgm', '.pnm'):
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
-    # ↓ Now saved file becomes new source file
-    source_image3D = image3D
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
     is_filtered = False
-    menu02.entryconfig('Save', state='disabled')
-    # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
-    info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
+    # ↓ Now saved file becomes new source file
+    onSave()
     UINormal()
 
 
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
-    global sourcefilename, is_saved, is_filtered, info_normal, color_mode_str
-    global source_image3D
+    global is_saved, is_filtered, info_normal, color_mode_str
+    global source_image3D, sourcefilename, resultfilename
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
@@ -416,16 +437,11 @@ def SaveAs(event=None) -> None:
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     else:
         raise ValueError('Extension not recognized')
-    # ↓ Now saved file becomes new source file
-    sourcefilename = resultfilename
-    source_image3D = image3D
     # ↓ Flagging image as saved, not filtered, and disabling "Save"
     is_saved = True  # to block future repetitive saving
     is_filtered = False
-    menu02.entryconfig('Save', state='disabled')
-    # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
-    info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
+    # ↓ Now saved file becomes new source file
+    onSave()
     UINormal()
 
 
