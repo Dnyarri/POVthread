@@ -112,7 +112,7 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
     for y in range(0, Y, 1):
         x_start = 0  # Defining start of inner loop of averaging until threshold.
         number = 1  # Number of pixels being read during averaging loop.
-        pixel = source_image[0][0]  # Current pixel.
+        pixel = source_image[cy(y)][0]  # Current pixel.
         pixels_sum = pixel  # Sum of pixels being read during averaging loop.
         for x in range(0, X + x_overhead, 1):
             number += 1
@@ -139,7 +139,7 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
     for x in range(0, X, 1):
         y_start = 0
         number = 1
-        pixel = intermediate_image[0][0]
+        pixel = intermediate_image[0][cx(x)]
         pixels_sum = pixel
         for y in range(0, Y + y_overhead, 1):
             number += 1

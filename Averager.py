@@ -3,7 +3,7 @@
 """Adaptive color average image filtering.
 -------------------------------------------
 
-Average image colors in a pixel row until difference between averaged and next pixel in row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
+Average image colors in a pixel row until difference between averaged and next pixel in a row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
 
 Input: PNG, PPM, PGM, PBM.
 
@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.11.11'
+__version__ = '3.22.18.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -81,7 +81,7 @@ def ShowInfo(event=None) -> None:
     showinfo(
         title='Image information',
         message=f'File properties:\nLocation: {sourcefilename}\nSize: {file_size_str}\nLast modified: {ctime(Path(sourcefilename).stat().st_mtime)}',
-        detail=f'Image properties, as represented internally:\nWidth: {X} px\nHeight: {Y} px\nChannels: {Z} channel{"s" if Z > 1 else ""}\nColor depth: {maxcolors + 1} gradations/channel',
+        detail=f'Image properties, as represented internally:\nStatus: {is_filtered=}, {is_saved=}\nWidth: {X} px\nHeight: {Y} px\nChannels: {Z} channel{"s" if Z > 1 else ""}\nColor depth: {maxcolors + 1} gradations/channel',
     )
 
 
@@ -142,7 +142,8 @@ def GetSource(event=None) -> None:
 
     zoom_factor = 0
     view_src = True
-    is_filtered = is_saved = False
+    is_filtered = False
+    is_saved = True
 
     sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
     if sourcefilename == '':
@@ -158,11 +159,11 @@ def GetSource(event=None) -> None:
 
     if Path(sourcefilename).suffix == '.png':
         # ↓ Reading PNG image as list
-        X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
+        X, Y, Z, maxcolors, source_image3D, info = png2list(sourcefilename)
 
     elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
-        X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
+        X, Y, Z, maxcolors, source_image3D = pnm2list(sourcefilename)
         # ↓ Creating dummy info required to correctly Save As PNG later.
         #   Fixing color mode, the rest is fixed with pnglpng v. 25.01.07.
         info = {'bitdepth': 16} if maxcolors > 255 else {'bitdepth': 8}
@@ -174,7 +175,7 @@ def GetSource(event=None) -> None:
         │ Creating deep copy of source 3D list       │
         │ to avoid accumulating repetitive filtering │
         └────────────────────────────────────────────┘ """
-    source_image3D = deepcopy(image3D)
+    image3D = deepcopy(source_image3D)
 
     """ ┌───────────────┐
         │ Viewing image │
@@ -200,8 +201,13 @@ def GetSource(event=None) -> None:
     # ↓ binding on preview click
     zanyato.bind('<Control-Button-1>', zoomIn)  # Ctrl + left click
     zanyato.bind('<Double-Control-Button-1>', zoomIn)  # Ctrl + left click too fast
+    zanyato.bind('<Control-+>', zoomIn)
+    zanyato.bind('<Control-=>', zoomIn)
     zanyato.bind('<Alt-Button-1>', zoomOut)  # Alt + left click
     zanyato.bind('<Double-Alt-Button-1>', zoomOut)  # Alt + left click too fast
+    zanyato.bind('<Control-minus>', zoomOut)
+    zanyato.bind('<Control-Key-1>', zoomOne)
+    zanyato.bind('<Control-Alt-Key-0>', zoomOne)
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
@@ -231,7 +237,7 @@ def GetSource(event=None) -> None:
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
-    butt_filter.focus_set()  # moving focus to "Filter"
+    zanyato.focus_set()
 
 
 def RunFilter(event=None) -> None:
@@ -315,6 +321,22 @@ def zoomOut(event=None) -> None:
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')
+
+
+def zoomOne(event=None) -> None:
+    """Zoom 1:1."""
+
+    global zoom_factor, view_src, preview
+    zoom_factor = 0
+
+    if view_src:
+        ShowPreview(preview_src, 'Source')
+    else:
+        ShowPreview(preview_filtered, 'Result')
+
+    # ↓ reenabling +/- buttons
+    butt_plus.config(state='normal', cursor='hand2')
+    butt_minus.config(state='normal', cursor='hand2')
 
 
 def zoomWheel(event) -> None:
@@ -535,7 +557,7 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
 info01.grid(row=0, column=2)
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
 spin01.grid(row=0, column=3)
 
 # ↓ Y-pass threshold control
@@ -543,7 +565,7 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
 info02.grid(row=0, column=4)
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
 spin02.grid(row=0, column=5)
 
 # ↓ Wrap around control

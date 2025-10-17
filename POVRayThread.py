@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.22.08.20'
+__version__ = '1.22.18.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -193,9 +193,14 @@ def GetSource(event=None) -> None:
     # ↓ binding on preview click
     zanyato.bind('<Control-Button-1>', zoomIn)  # Ctrl + left click
     zanyato.bind('<Double-Control-Button-1>', zoomIn)  # Ctrl + left click too fast
+    zanyato.bind('<Control-+>', zoomIn)
+    zanyato.bind('<Control-=>', zoomIn)
     zanyato.bind('<Alt-Button-1>', zoomOut)  # Alt + left click
     zanyato.bind('<Double-Alt-Button-1>', zoomOut)  # Alt + left click too fast
-    sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel
+    zanyato.bind('<Control-minus>', zoomOut)
+    zanyato.bind('<Control-Key-1>', zoomOne)
+    zanyato.bind('<Control-Alt-Key-0>', zoomOne)
+    sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
     # ↓ binding global
@@ -217,7 +222,7 @@ def GetSource(event=None) -> None:
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
-    butt_filter.focus_set()  # moving focus to "Filter"
+    zanyato.focus_set()
 
 
 def RunFilter(event=None) -> None:
@@ -291,6 +296,22 @@ def zoomOut(event=None) -> None:
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')
+
+
+def zoomOne(event=None) -> None:
+    """Zoom 1:1."""
+
+    global zoom_factor, view_src, preview
+    zoom_factor = 0
+
+    if view_src:
+        ShowPreview(preview_src, 'Source')
+    else:
+        ShowPreview(preview_filtered, 'Result')
+
+    # ↓ reenabling +/- buttons
+    butt_plus.config(state='normal', cursor='hand2')
+    butt_minus.config(state='normal', cursor='hand2')
 
 
 def zoomWheel(event) -> None:
@@ -452,7 +473,7 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
 info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
 spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Y-pass threshold control
@@ -460,7 +481,7 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
 info02.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=256, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
