@@ -29,7 +29,7 @@ No force RGB anymore.
 3.20.20.3   Code harmonization. Lambdas completely replaced with operators
 and defined functions to improve speed.
 
-3.22.08.20  Map to list conversion removed wherever possible.
+3.22.13.11  Unnecessary map to list conversion removed, necessary replaced with [*map] unpacking.
 
 """
 
@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.08.20'
+__version__ = '3.22.13.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -117,9 +117,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
         for x in range(0, X + x_overhead, 1):
             number += 1
             pixel = source_image[cy(y)][cx(x)]
-            pixels_sum = list(map(add, pixel, pixels_sum))  # Core part of averaging - adding up.
+            pixels_sum = [*map(add, pixel, pixels_sum)]  # Core part of averaging - adding up.
             if any(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (x == (X - 1 + x_overhead)):
-                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))  # Inner loop result.
+                average_pixel = [*map(floordiv, pixels_sum, (number,) * Z)]  # Inner loop result.
                 for i in range(x_start, x - 1, 1):
                     intermediate_image[y][cx(i)] = average_pixel
                 # ↓ Redefining start of new inner loop until threshold.
@@ -144,9 +144,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
         for y in range(0, Y + y_overhead, 1):
             number += 1
             pixel = intermediate_image[cy(y)][cx(x)]
-            pixels_sum = list(map(add, pixel, pixels_sum))
+            pixels_sum = [*map(add, pixel, pixels_sum)]
             if any(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (y == (Y - 1 + y_overhead)):
-                average_pixel = list(map(floordiv, pixels_sum, (number,) * Z))
+                average_pixel = [*map(floordiv, pixels_sum, (number,) * Z)]
                 for i in range(y_start, y - 1, 1):
                     result_image[cy(i)][x] = average_pixel
                 y_start = y
