@@ -1,43 +1,48 @@
 #!/usr/bin/env python3
 
 """
-Averaging image pixels in a row until reaching `abs(average - current) > threshold`, then repeating in a column.
+Averaging image pixels in a row until reaching `abs(average - current) > threshold`,
+then repeating in a column.
 
 Created by: `Ilya Razmanov <https://dnyarri.github.io/>`_
 
-History:
----------
-
-0.10.12.3   Initial version - 12 Oct 2024. RGB only.
-
-0.10.13.2   Forces RGB, skips alpha. Changed threshold condition to r, g, b separately. 
-Seem to be just what I need.
-
-0.10.25.1   Bugfix for tiny details.
-
-1.16.5.10   Modularization, some optimization. Force keep alpha.
-
-1.17.10.1   Edge condition bugfix.
-
-2.19.14.16  Wrap around processing introduced.
-
-3.20.1.1    Substantial rewriting with `map` to correctly support L.
-No force RGB anymore.
-
-3.20.7.14   Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
-
-3.20.20.3   Code harmonization. Lambdas completely replaced with operators
-and defined functions to improve speed.
-
-3.22.13.11  Unnecessary map to list conversion removed, necessary replaced with [*map] unpacking.
-
 """
+
+#   History:
+#   ---------
+#
+#   0.10.12.3   Initial version - 12 Oct 2024. RGB only.
+#
+#   0.10.13.2   Forces RGB, skips alpha. Changed threshold condition to r, g, b separately.
+#   Seem to be just what I need.
+#
+#   0.10.25.1   Bugfix for tiny details.
+#
+#   1.16.5.10   Modularization, some optimization. Force keep alpha.
+#
+#   1.17.10.1   Edge condition bugfix.
+#
+#   2.19.14.16  Wrap around processing introduced.
+#
+#   3.20.1.1    Substantial rewriting with `map` to correctly support L.
+#   No force RGB anymore.
+#
+#   3.20.7.14   Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
+#
+#   3.20.20.3   Code harmonization. Lambdas completely replaced with operators
+#   and defined functions to improve speed.
+#
+#   3.22.13.11  Unnecessary map to list conversions removed,
+#   necessary ones replaced with [*map] unpacking.
+#
+#   3.22.18.8   Evasive bug discovered and presumably exterminated.
+#
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.13.11'
+__version__ = '3.22.18.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -52,7 +57,7 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
     return new_image
 
 
-def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: int, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
+def filter(source_image: list[list[list[int]]], threshold_x: int | float, threshold_y: int | float, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
     """Average image pixels in a row until `abs(average - current) > threshold` criterion met, then repeat in a column."""
 
     # ↓ Determining image sizes.
@@ -110,15 +115,19 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
         #   Uses outer scope `number` and `threshold_x`.
 
     for y in range(0, Y, 1):
-        x_start = 0  # Defining start of inner loop of averaging until threshold.
+        x_start = 0  # Defining start of inner loop of averaging until threshold hit.
         number = 1  # Number of pixels being read during averaging loop.
-        pixel = source_image[cy(y)][0]  # Current pixel.
+        pixel = source_image[cy(y)][0]  # Starting pixel.
         pixels_sum = pixel  # Sum of pixels being read during averaging loop.
         for x in range(0, X + x_overhead, 1):
             number += 1
+            # ↓ Core part of averaging - adding up.
+            #   It is important to sum pixels read BEFORE current pixel
+            #   so when checking threshold and writing an averaged line
+            #   edge pixel is not included into average.
+            pixels_sum = [*map(add, pixel, pixels_sum)]
             pixel = source_image[cy(y)][cx(x)]
-            pixels_sum = [*map(add, pixel, pixels_sum)]  # Core part of averaging - adding up.
-            if any(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (x == (X - 1 + x_overhead)):
+            if any(map(_criterion_x, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])):
                 average_pixel = [*map(floordiv, pixels_sum, (number,) * Z)]  # Inner loop result.
                 for i in range(x_start, x - 1, 1):
                     intermediate_image[y][cx(i)] = average_pixel
@@ -143,9 +152,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
         pixels_sum = pixel
         for y in range(0, Y + y_overhead, 1):
             number += 1
-            pixel = intermediate_image[cy(y)][cx(x)]
             pixels_sum = [*map(add, pixel, pixels_sum)]
-            if any(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])) or (y == (Y - 1 + y_overhead)):
+            pixel = intermediate_image[cy(y)][cx(x)]
+            if any(map(_criterion_y, pixel[:Z_COLOR], pixels_sum[:Z_COLOR])):
                 average_pixel = [*map(floordiv, pixels_sum, (number,) * Z)]
                 for i in range(y_start, y - 1, 1):
                     result_image[cy(i)][x] = average_pixel
@@ -166,6 +175,8 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
             return resultimage_plus_alpha
         else:
             return result_image
+
+
 # ↑ filter finished
 
 # ↓ Dummy stub for standalone execution attempt
@@ -174,4 +185,5 @@ if __name__ == '__main__':
     need_help = input('Would you like to read some help (y/n)?')
     if need_help.startswith(('y', 'Y')):
         import avgrow
+
         help(avgrow)
