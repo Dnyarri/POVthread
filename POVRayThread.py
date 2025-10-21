@@ -37,7 +37,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.22.18.8'
+__version__ = '1.22.20.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -435,7 +435,9 @@ frame_preview.pack(side='top', anchor='center', expand=True)
 # ↓ File and menu
 butt_file = Menubutton(
     frame_top,
-    text='File...'.ljust(10, ' '),
+    text='File...',
+    width=8,
+    anchor='w',
     font=butt['font'],
     cursor=butt['cursor'],
     relief=butt['relief'],
@@ -445,7 +447,7 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.pack(side='left', padx=(0, 10), pady=0, fill='x')
+butt_file.pack(side='left', padx=(0, 10), pady=0, fill='both')
 
 menu02 = Menu(butt_file, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
@@ -488,6 +490,8 @@ spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 butt_filter = Button(
     frame_top,
     text='Filter',
+    width=8,
+    anchor='center',
     font=butt['font'],
     cursor='arrow',
     relief=butt['relief'],

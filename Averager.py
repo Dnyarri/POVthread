@@ -38,7 +38,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.18.8'
+__version__ = '3.22.20.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -519,7 +519,9 @@ frame_preview.pack(side='top', anchor='center', expand=True)
 # ↓ File menu
 butt_file = Menubutton(
     frame_top,
-    text='File...'.ljust(10, ' '),
+    text='File...',
+    width=8,
+    anchor='w',
     font=butt['font'],
     cursor=butt['cursor'],
     relief=butt['relief'],
@@ -581,7 +583,9 @@ check02.grid(row=1, column=3, columnspan=3, sticky='ws')
 # ↓ Filter start
 butt_filter = Button(
     frame_top,
-    text='Filter'.center(10, ' '),
+    text='Filter',
+    width=8,
+    anchor='center',
     font=butt['font'],
     cursor='arrow',
     relief=butt['relief'],
