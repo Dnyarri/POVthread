@@ -26,6 +26,8 @@ History:
 
 1.20.20.1   Numerous minor GUI improvements and code cleanup.
 
+1.23.1.1    Even more numerous GUI improvements, including spinbox control with mousewheel.
+
 ----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
 
@@ -37,7 +39,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.22.20.18'
+__version__ = '1.23.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -200,12 +202,17 @@ def GetSource(event=None) -> None:
     zanyato.bind('<Control-minus>', zoomOut)
     zanyato.bind('<Control-Key-1>', zoomOne)
     zanyato.bind('<Control-Alt-Key-0>', zoomOne)
+    # ↓ binding global
+    sortir.bind_all('<Return>', RunFilter)
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
-    # ↓ binding global
-    sortir.bind_all('<Return>', RunFilter)
-    # ↓ enabling save
+    # ↓ Spin
+    spin01.unbind('<MouseWheel>')
+    spin01.bind('<MouseWheel>', incWheel)
+    spin02.unbind('<MouseWheel>')
+    spin02.bind('<MouseWheel>', incWheel)
+    # ↓ enabling Save as...
     menu02.entryconfig('Export Linen...', state='normal')
     menu02.entryconfig('Export Stitch...', state='normal')
 
@@ -215,7 +222,7 @@ def GetSource(event=None) -> None:
     # ↓ updating zoom label display
     label_zoom['text'] = 'Zoom 1:1'
     # ↓ Adding filename to window title a-la Photoshop
-    sortir.title(f'POV-Ray Thread: {Path(sourcefilename).name}')
+    sortir.title(f'{product_name}: {Path(sourcefilename).name}')
     info_normal = {'txt': f'{Path(sourcefilename).name} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
@@ -317,10 +324,11 @@ def zoomOne(event=None) -> None:
 def zoomWheel(event) -> None:
     """zoomIn or zoomOut by mouse wheel."""
 
-    if event.delta < 0:
-        zoomOut()
-    if event.delta > 0:
-        zoomIn()
+    if event.widget not in transparent_controls:
+        if event.delta < 0:
+            zoomOut()
+        if event.delta > 0:
+            zoomIn()
 
 
 def SwitchView(event=None) -> None:
@@ -384,6 +392,27 @@ def SaveAsStitch() -> None:
     UINormal()
 
 
+def valiDig(new_value):
+    """Validate Spinbox input and reject non-numerical."""
+
+    return True if new_value.isdigit() else False
+
+
+def incWheel(event) -> None:
+    """Increment or decrement spinboxes by mouse wheel."""
+
+    if event.widget == spin01:
+        if event.delta < 0:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - 1)))
+        if event.delta > 0:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + 1)))
+    if event.widget == spin02:
+        if event.delta < 0:
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - 1)))
+        if event.delta > 0:
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + 1)))
+
+
 """ ╔═══════════╗
     ║ Main body ║
     ╚═══════════╝ """
@@ -391,11 +420,14 @@ def SaveAsStitch() -> None:
 zoom_factor = 0
 view_src = True
 is_filtered = False
+product_name = 'POV-Ray Thread'
 
 sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
-sortir.title('POV-Ray Thread')
+sortir.title(product_name)
+
+validate_entry = sortir.register(valiDig)
 
 # ↓ Buttons dictionaries
 butt = {
@@ -411,7 +443,7 @@ butt = {
 }
 
 # ↓ Info statuses dictionaries
-info_normal = {'txt': f'POV-Ray Thread {__version__}', 'fg': 'grey', 'bg': 'grey90'}
+info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
@@ -424,7 +456,7 @@ sortir.bind_all('<Control-o>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
 
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
-frame_top.pack(side='top', anchor='n', pady=(0, 2))
+frame_top.pack(side='top', anchor='w', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
 frame_preview.pack(side='top', anchor='center', expand=True)
 
@@ -475,7 +507,7 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
 info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
 spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Y-pass threshold control
@@ -483,7 +515,7 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
 info02.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
@@ -533,6 +565,8 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
+
+transparent_controls = (spin01, spin02)  # To be cut off global evens
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()

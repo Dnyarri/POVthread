@@ -27,6 +27,8 @@ History:
 3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
 image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
 
+1.23.1.1    Even more GUI improvements, including spinbox control with mousewheel.
+
 ----
 Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
 
@@ -38,7 +40,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.20.18'
+__version__ = '3.23.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -208,12 +210,17 @@ def GetSource(event=None) -> None:
     zanyato.bind('<Control-minus>', zoomOut)
     zanyato.bind('<Control-Key-1>', zoomOne)
     zanyato.bind('<Control-Alt-Key-0>', zoomOne)
+    # ↓ binding global
+    sortir.bind_all('<Return>', RunFilter)
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
-    # ↓ binding global
-    sortir.bind_all('<Return>', RunFilter)
-    # ↓ enabling save
+    # ↓ Spin
+    spin01.unbind('<MouseWheel>')
+    spin01.bind('<MouseWheel>', incWheel)
+    spin02.unbind('<MouseWheel>')
+    spin02.bind('<MouseWheel>', incWheel)
+    # ↓ enabling Save as...
     menu02.entryconfig('Save as...', state='normal')
     sortir.bind_all('<Control-Shift-S>', SaveAs)
     # ↓ enabling zoom buttons
@@ -230,7 +237,7 @@ def GetSource(event=None) -> None:
         color_mode_str = f' (RGBA:{"8" if maxcolors < 256 else "16"})'
     else:
         color_mode_str = ''  # Just in case
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ enabling "Filter"
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
@@ -279,7 +286,7 @@ def RunFilter(event=None) -> None:
     zanyato.bind('<Button-1>', SwitchView)  # left click
     zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
     # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
     zanyato.focus_set()  # moving focus to preview
@@ -342,10 +349,11 @@ def zoomOne(event=None) -> None:
 def zoomWheel(event) -> None:
     """zoomIn or zoomOut by mouse wheel."""
 
-    if event.delta < 0:
-        zoomOut()
-    if event.delta > 0:
-        zoomIn()
+    if event.widget not in transparent_controls:
+        if event.delta < 0:
+            zoomOut()
+        if event.delta > 0:
+            zoomIn()
 
 
 def SwitchView(event=None) -> None:
@@ -379,7 +387,7 @@ def onSave() -> None:
     # ↓ preview source
     ShowPreview(preview_src, 'Source')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'Averager: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
@@ -467,6 +475,27 @@ def SaveAs(event=None) -> None:
     UINormal()
 
 
+def valiDig(new_value):
+    """Validate Spinbox input and reject non-numerical."""
+
+    return True if new_value.isdigit() else False
+
+
+def incWheel(event) -> None:
+    """Increment or decrement spinboxes by mouse wheel."""
+
+    if event.widget == spin01:
+        if event.delta < 0:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - 1)))
+        if event.delta > 0:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + 1)))
+    if event.widget == spin02:
+        if event.delta < 0:
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - 1)))
+        if event.delta > 0:
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + 1)))
+
+
 """ ╔═══════════╗
     ║ Main body ║
     ╚═══════════╝ """
@@ -474,11 +503,14 @@ def SaveAs(event=None) -> None:
 zoom_factor = 0
 view_src = True
 is_filtered = False
+product_name = 'Averager'
 
 sortir = Tk()
 
 sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
-sortir.title('Averager')
+sortir.title(product_name)
+
+validate_entry = sortir.register(valiDig)
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
@@ -508,7 +540,7 @@ sortir.bind_all('<Control-o>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
 
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
-frame_top.pack(side='top', anchor='n', pady=(0, 2))
+frame_top.pack(side='top', anchor='w', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
 frame_preview.pack(side='top', anchor='center', expand=True)
 
@@ -559,7 +591,7 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
 info01.grid(row=0, column=2)
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11))
+spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
 spin01.grid(row=0, column=3)
 
 # ↓ Y-pass threshold control
@@ -567,7 +599,7 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
 info02.grid(row=0, column=4)
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11))
+spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
 spin02.grid(row=0, column=5)
 
 # ↓ Wrap around control
@@ -627,6 +659,8 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
+
+transparent_controls = (spin01, spin02)  # To be cut off global evens
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
