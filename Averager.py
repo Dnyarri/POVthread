@@ -40,7 +40,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.23.1.1'
+__version__ = '3.23.7.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -159,11 +159,11 @@ def GetSource(event=None) -> None:
         │ GLOBALS! They are used during saving!  │
         └────────────────────────────────────────┘ """
 
-    if Path(sourcefilename).suffix == '.png':
+    if Path(sourcefilename).suffix.lower() == '.png':
         # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, source_image3D, info = png2list(sourcefilename)
 
-    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm', '.pnm'):
+    elif Path(sourcefilename).suffix.lower() in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
         X, Y, Z, maxcolors, source_image3D = pnm2list(sourcefilename)
         # ↓ Creating dummy info required to correctly Save As PNG later.
@@ -405,10 +405,10 @@ def Save(event=None) -> None:
     resultfilename = sourcefilename
     UIBusy()
     # ↓ Save format choice
-    if Path(resultfilename).suffix == '.png':
+    if Path(resultfilename).suffix.lower() == '.png':
         info['compression'] = 9  # Explicitly setting compression
         list2png(resultfilename, image3D, info)  # Writing file
-    elif Path(resultfilename).suffix in ('.ppm', '.pgm', '.pnm'):
+    elif Path(resultfilename).suffix.lower() in ('.ppm', '.pgm', '.pnm'):
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
@@ -426,7 +426,7 @@ def SaveAs(event=None) -> None:
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
-    src_extension = Path(sourcefilename).suffix
+    src_extension = Path(sourcefilename).suffix.lower()
     if Z == 1:
         if src_extension in ('.pgm', '.pnm'):
             format_list = [('Portable grey map', '.pgm'), ('Portable network graphics', '.png')]
@@ -460,10 +460,10 @@ def SaveAs(event=None) -> None:
         return None
     UIBusy()
     # ↓ Save format choice
-    if Path(resultfilename).suffix == '.png':
+    if Path(resultfilename).suffix.lower() == '.png':
         info['compression'] = 9  # Explicitly setting compression
         list2png(resultfilename, image3D, info)  # Writing file
-    elif Path(resultfilename).suffix in ('.ppm', '.pgm'):
+    elif Path(resultfilename).suffix.lower() in ('.ppm', '.pgm'):
         list2pnm(resultfilename, image3D, maxcolors)  # Writing file
     else:
         raise ValueError('Extension not recognized')
@@ -476,9 +476,18 @@ def SaveAs(event=None) -> None:
 
 
 def valiDig(new_value):
-    """Validate Spinbox input and reject non-numerical."""
+    """Validate Spinbox input and reject non-integer."""
 
-    return True if new_value.isdigit() else False
+    if new_value.strip() == '':
+        return True
+    try:
+        _ = int(new_value)
+        if _ >= 0 and _ < 256:
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
 
 
 def incWheel(event) -> None:

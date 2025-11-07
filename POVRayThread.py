@@ -39,7 +39,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.1.1'
+__version__ = '1.23.7.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -159,11 +159,11 @@ def GetSource(event=None) -> None:
         │  NOTE: maxcolors, image3D are GLOBALS! │
         └────────────────────────────────────────┘ """
 
-    if Path(sourcefilename).suffix == '.png':
+    if Path(sourcefilename).suffix.lower() == '.png':
         # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
 
-    elif Path(sourcefilename).suffix in ('.ppm', '.pgm', '.pbm', '.pnm'):
+    elif Path(sourcefilename).suffix.lower() in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
         X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
 
@@ -393,9 +393,18 @@ def SaveAsStitch() -> None:
 
 
 def valiDig(new_value):
-    """Validate Spinbox input and reject non-numerical."""
+    """Validate Spinbox input and reject non-integer."""
 
-    return True if new_value.isdigit() else False
+    if new_value.strip() == '':
+        return True
+    try:
+        _ = int(new_value)
+        if _ >= 0 and _ < 256:
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
 
 
 def incWheel(event) -> None:
