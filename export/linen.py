@@ -1,36 +1,66 @@
 #!/usr/bin/env python3
 
 """
-POV Thread textile simulation (based on POV Mosaic)
----
+======================
+POV-Ray Thread: Linen
+======================
+--------------------------------------------------------------
+Converting image to canvas simulation in POV-Ray format.
+--------------------------------------------------------------
 
-Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
+Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
+aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
-Output: `POV-Ray<https://www.povray.org/>`_.
+Overview
+--------
 
-History:
----
+**linen** export module present function for converting images
+and image-like nested lists to an assembly of 3D objects,
+colored after source pixels, and forming a simulation of
+plain weave textile.
 
-2007 - General idea illustration for Kris Zaklika.
+Objects may be displaced when rendering, based on POV-Ray internal
+Perlin noise, simulating canvas deformation.
 
-1.10.04.01  Initial public release.
+Usage
+-----
 
-1.16.5.23   Modularization.
+**`linen.linen(image3D, maxcolors, savefilename)`**
 
-1.22.01.11  Acceleration, numerous internal changes.
+where:
 
----
-Main site: `The Toad's Slimy Mudhole <https://dnyarri.github.io>`_
+- `image3d`: image as list of lists of lists of int channel values;
+- `maxcolors`: maximum value of int in `image3d` list;
+- `savefilename`: name of POV-Ray file to export.
 
-Git repository: `POV-Ray Thread at Github<https://github.com/Dnyarri/POVthread>`_
+----
+Main site: `The Toad's Slimy Mudhole`_
+
+.. _The Toad's Slimy Mudhole: https://dnyarri.github.io
+
+`POV-Ray Thread`_ previews and description
+
+.. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
+
+POV-Ray Thread Git repositories: `@Github`_, `@Gitflic`_
+
+.. _@Github: https://github.com/Dnyarri/POVthread
+
+.. _@Gitflic: https://gitflic.ru/project/dnyarri/povthread
 
 """
+
+# History:
+# --------
+# 1.10.04.01  Initial public release.
+# 1.16.5.23   Modularization.
+# 1.22.01.11  Acceleration, numerous internal changes.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.22.01.11'
+__version__ = '1.23.9.23'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -289,6 +319,8 @@ def linen(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -
 
     # Close output
     resultfile.close()
+
+
 # ↑ linen finished
 
 # ↓ Dummy stub for standalone execution attempt

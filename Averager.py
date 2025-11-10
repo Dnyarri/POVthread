@@ -1,46 +1,63 @@
 #!/usr/bin/env python3
 
-"""Adaptive color average image filtering.
--------------------------------------------
+"""
+======================================
+Adaptive color average image filtering
+======================================
 
-Average image colors in a pixel row until difference between averaged and next pixel in a row reach threshold. Then repeat the same in column. Thus filter changes smooth image areas to completely flat colored, with detailed edges between them.
+Average image colors in a pixel row until difference between averaged
+and next pixel in a row reach threshold. Then repeat the same in column.
+Thus filter changes smooth image areas to completely flat colored,
+with detailed edges between them.
+
+`_Averager`_ was initially created for `POV-Ray Thread`_ but later on evolved
+from small auxiliary accessory for testing filter module to an interesting example
+of pure Python image filtering application.
 
 Input: PNG, PPM, PGM, PBM.
 
 Output: PNG, PPM, PGM.
 
-Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_ aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
-
-History:
-----
-
-0.10.14.0   Initial version of filter host template - 14 Oct 2024. Using png in tempfile preview etc.
-
-1.14.1.1    Preview etc with PyPNM. Image list moved to global to reduce rereading.
-
-1.16.4.24   PNG and PPM support, zoom in and out, numerous fixes.
-
-1.16.9.14   Preview switch source/result added. Zoom on click now mimic Photoshop Ctrl + Click and Alt + Click.
-
-2.16.20.20  Changed GUI to menus.
-
-3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
-image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
-
-1.23.1.1    Even more GUI improvements, including spinbox control with mousewheel.
+Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
+aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
 
 ----
-Main site: `The Toad's Slimy Mudhole<https://dnyarri.github.io>`_
+Main site: `The Toad's Slimy Mudhole`_
 
-Git: `Dnyarri at Github<https://github.com/Dnyarri>`_; `Gitflic mirror<https://gitflic.ru/user/dnyarri>`_
+.. _The Toad's Slimy Mudhole: https://dnyarri.github.io
+
+`POV-Ray Thread`_ previews and description
+
+.. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
+
+`_Averager`_ preview
+
+.. _Averager: https://dnyarri.github.io/povthread.html#averager
+
+POV-Ray Thread source `@Github`_
+
+.. _@Github: https://github.com/Dnyarri/POVthread
 
 """
+
+# History:
+# --------
+# 0.10.14.0   Initial version of filter host template - 14 Oct 2024.Using png in tempfile preview etc.
+# 0.10.17.3   Linked standalone version.
+# 1.14.1.1    Preview etc with builtin PyPNM. Image list moved to global to reduce rereading.
+# 1.16.4.24   PNG and PPM support, zoom in and out, numerous fixes.
+# 1.16.9.14   Preview switch source/result added. Zoom on click now mimic
+#       Photoshop Ctrl + Click and Alt + Click.
+# 2.16.20.20  Changed GUI to menus.
+# 3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
+#       image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
+# 1.23.1.1    Even more GUI improvements, including spinbox control with mousewheel.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.23.7.9'
+__version__ = '3.23.9.23'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
