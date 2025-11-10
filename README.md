@@ -1,8 +1,8 @@
 # POV-Ray Thread - Bitmap to 3D canvas and cross stitch simulation converter
 
-Python program for conversion of bitmap image (in PNG or PPM format) to some sort of solid objects in [POVRay](https://www.povray.org/) 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
+Python program for conversion of bitmap image (in PNG or PPM format) to some sort of solid objects in [POVRay](https://www.povray.org/ "Persistence of Vision Raytracer") 3D format, resembling threads of canvas or cross stitches. Each source image pixel is converted to a 3D object, colored after source pixel.
 
-[![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png "Example of linen export rendering")](https://dnyarri.github.io/povthread.html)
+[![Example of linen export rendering](https://dnyarri.github.io/thread/linen24x512.png "Example of linen export rendering")](https://dnyarri.github.io/povthread.html "Example of linen canvas POV-Ray Thread export rendering")
 
 ## Main program GUI
 
@@ -19,17 +19,17 @@ Useful GUI features include mouse event handling:
 - **Linen.py** - creates an object, simulating canvas, colored after source image (taffeta, print on canvas, and the like).
 - **Stitch.py** - simulates common cross stitching embroidery appearance.
 
-[![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png "Example of cross-stitch export rendering")](https://dnyarri.github.io/povthread.html)
+[![Example of cross-stitch export rendering](https://dnyarri.github.io/thread/stitch24x512.png "Example of cross-stitch export rendering")](https://dnyarri.github.io/povthread.html "Example of cross-stitch POV-Ray Thread export rendering")
 
 ## Prerequisite and Dependencies
 
 1. [Python](https://www.python.org/) 3.11 or above.
-2. [PyPNG](https://gitlab.com/drj11/pypng). Copy included into current POV-Ray Thread distribution.
-3. [PyPNM](https://pypi.org/project/PyPNM/). Copy included into current POV-Ray Thread distribution.
+2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG I/O module"). Copy included into current POV-Ray Thread distribution.
+3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PNM I/O module"). Copy included into current POV-Ray Thread distribution.
 4. Tkinter. Normally included into standard CPython distribution.
 
 > [!NOTE]
-> Since POVRayThread 1.21.7.11 and Averager 3.21.7.11 PyPNM version included into distribution updated to [PyPNM "Victory 2" main](https://github.com/Dnyarri/PyPNM), intended to be used with Python 3.11 and above. The only actual limitation is that main version does not have a workaround for displaying 16 bpc images necessary for old Tkinter included into old CPython distributions. If you want bringing old Tkinter compatibility back, download [PyPNM extended compatibility version](https://github.com/Dnyarri/PyPNM/tree/py34) and plug it in manually.
+> Since POVRayThread 1.21.7.11 and Averager 3.21.7.11 PyPNM version included into distribution updated to [PyPNM "Victory 2" main](https://github.com/Dnyarri/PyPNM "Pure Python PPM and PGM I/O module"), intended to be used with Python 3.11 and above. The only actual limitation is that main version does not have a workaround for displaying 16 bpc images necessary for old Tkinter included into old CPython distributions. If you want bringing old Tkinter compatibility back, download [PyPNM extended compatibility version](https://github.com/Dnyarri/PyPNM/tree/py34 "Pure Python PPM and PGM I/O module for Python 3.4") and plug it in manually.
 
 ## Installation and Usage
 
@@ -41,14 +41,16 @@ Programs distribution is rather self-contained and is supposed to run right out 
 
 Later this filtering module was added to *POVRayThread*, making *Averager* redundant; however, it is still included into distribution as an illustration of 100% pure Python image filtering program, working at quite acceptable speed without any large third-party C packages.
 
-[![Adaptive Image Averager program GUI](https://dnyarri.github.io/thread/ave.png "Adaptive Image Averager program GUI")](https://dnyarri.github.io/povthread.html#averager)
+[![Adaptive Image Averager program GUI](https://dnyarri.github.io/thread/ave.png "Adaptive Image Averager program GUI")](https://dnyarri.github.io/povthread.html#averager "Adaptive Image Averager - image filtering application in pure Python")
 
 ### Related
 
-[Dnyarri website - other Python freeware](https://dnyarri.github.io) by the same author.
+[Dnyarri website - other Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for image editing, Scale2x, Scale3x, Scale2xSFX and Scale3xSFX, PyPNM, POV-Ray, etc.") by the same author.
 
-[POV-Ray Thread page with illustrations](https://dnyarri.github.io/povthread.html), explanations etc.
+[POV-Ray Thread page with illustrations](https://dnyarri.github.io/povthread.html "POV-Ray Thread rendering example and Averager preview"), explanations etc.
 
-[POV-Ray Thread source at github](https://github.com/Dnyarri/POVthread)
+[Ancestor project: POV‑Ray Mosaic](https://dnyarri.github.io/povzaika.html "POV‑Ray Mosaic: converting bitmap into mosaic of 3D elements packed in hexagonal, square or triangular tiles")
 
-[POV-Ray Thread source at gitflic mirror](https://gitflic.ru/project/dnyarri/povthread)
+[POV-Ray Thread source at github](https://github.com/Dnyarri/POVthread "POV-Ray Thread source")
+
+[POV-Ray Thread source at gitflic mirror](https://gitflic.ru/project/dnyarri/povthread "POV-Ray Thread source")
