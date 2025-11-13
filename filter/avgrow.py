@@ -1,48 +1,76 @@
 #!/usr/bin/env python3
 
 """
-Averaging image pixels in a row until reaching `abs(average - current) > threshold`,
+Averaging image pixels in a row until reaching ``abs(average - current) > threshold``,
 then repeating in a column.
 
-Created by: `Ilya Razmanov <https://dnyarri.github.io/>`_
+Pure Python image filtering module for `POV-Ray Thread`_ and `Averager`_ applications.
+Initial purpose is transforming row sequences of closely colored pixels
+into a sequence of the same solid color to simulate single thread in canvas;
+however filter may work with columns as well, producing squarish flat color areas.
+
+Usage
+-----
+
+::
+
+    result_image = avgrow.filter(source_image, threshold_x, threshold_y, wraparound, keep_alpha)
+
+where:
+
+:source_image: input image as list of lists of lists of int channel values;
+:threshold_x: threshold upon which row averaging stops and restarts from this pixel on (int);
+:threshold_y: threshold upon which column averaging stops and restarts from this pixel on (int);
+:wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode (bool);
+:keep_alpha: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color (bool).
+
+Both thresholds (int) are used directly, regardless of 8 bpc or 16 bpc color depth. Filter input does not include color depth and/or range in any form, therefore threshold range normalization, if deemed necessary, should be performed at host end.
+
+-----
+Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
+aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
+
+Main site: `The Toad's Slimy Mudhole`_
+
+`POV-Ray Thread`_ previews and description
+
+`Averager`_ preview
+
+POV-Ray Thread source `@Github`_
+
+.. _The Toad's Slimy Mudhole: https://dnyarri.github.io
+
+.. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
+
+.. _Averager: https://dnyarri.github.io/povthread.html#averager
+
+.. _@Github: https://github.com/Dnyarri/POVthread
+
 
 """
 
 #   History:
-#   ---------
-#
-#   0.10.12.3   Initial version - 12 Oct 2024. RGB only.
-#
-#   0.10.13.2   Forces RGB, skips alpha. Changed threshold condition to r, g, b separately.
-#   Seem to be just what I need.
-#
-#   0.10.25.1   Bugfix for tiny details.
-#
-#   1.16.5.10   Modularization, some optimization. Force keep alpha.
-#
-#   1.17.10.1   Edge condition bugfix.
-#
-#   2.19.14.16  Wrap around processing introduced.
-#
-#   3.20.1.1    Substantial rewriting with `map` to correctly support L.
-#   No force RGB anymore.
-#
-#   3.20.7.14   Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
-#
-#   3.20.20.3   Code harmonization. Lambdas completely replaced with operators
-#   and defined functions to improve speed.
-#
-#   3.22.13.11  Unnecessary map to list conversions removed,
-#   necessary ones replaced with [*map] unpacking.
-#
-#   3.22.18.8   Evasive bug discovered and presumably exterminated.
-#
+#   --------
+# 0.10.12.3     Initial version - 12 Oct 2024. RGB only.
+# 0.10.13.2     Forces RGB, skips alpha. Changed threshold condition to r, g, b separately.
+#       Seem to be just what I need.
+# 0.10.25.1     Bugfix for tiny details.
+# 1.16.5.10     Modularization, some optimization. Force keep alpha.
+# 1.17.10.1     Edge condition bugfix.
+# 2.19.14.16    Wrap around processing introduced.
+# 3.20.1.1      Substantial rewriting with `map` to correctly support L. No force RGB anymore.
+# 3.20.7.14     Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
+# 3.20.20.3     Code harmonization. Lambdas completely replaced with operators
+#       and defined functions to improve speed.
+# 3.22.13.11    Unnecessary map to list conversions removed,
+#       necessary ones replaced with [*map] unpacking.
+# 3.22.18.8     Evasive bug discovered and presumably exterminated.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.22.18.8'
+__version__ = '3.23.13.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -58,7 +86,15 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
 
 
 def filter(source_image: list[list[list[int]]], threshold_x: int | float, threshold_y: int | float, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
-    """Average image pixels in a row until `abs(average - current) > threshold` criterion met, then repeat in a column."""
+    """Average image pixels in a row until `abs(average - current) > threshold` criterion met, then repeat in a column.
+
+    :source_image: input image as list of lists of lists of int channel values;
+    :threshold_x: threshold upon which row averaging stops and restarts from this pixel on;
+    :threshold_y: threshold upon which column averaging stops and restarts from this pixel on;
+    :wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode;
+    :keep_alpha: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color.
+
+    """
 
     # ↓ Determining image sizes.
     Y = len(source_image)
@@ -70,13 +106,13 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
     intermediate_image = create_image(X, Y, Z)
     result_image = create_image(X, Y, Z)
 
-    """ ┌──────────────────────────────────────────┐
+    """ ╭──────────────────────────────────────────╮
         │ Coordinates for reading and writing.     │
         │ NOTE: with 0 overhead filter never goes  │
         │ out of image list index, so separate src │
         │ for repeat edge is unnecessary, it's     │
         │ kept here just for reference and reuse.  │
-        └──────────────────────────────────────────┘ """
+        ╰──────────────────────────────────────────╯ """
 
     def cx_repeat(x: int | float) -> int:
         """x for repeat edge"""
@@ -104,9 +140,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
     else:
         x_overhead = y_overhead = 0
 
-    """ ┌─────────────────┐
+    """ ╭─────────────────╮
         │ Horizontal pass │
-        └─────────────────┘ """
+        ╰─────────────────╯ """
 
     def _criterion_x(channel: int, channel_sum: int) -> bool:
         """Threshold criterion for x, single channel."""
@@ -137,9 +173,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
                 pixels_sum = pixel
             intermediate_image[y][cx(x)] = pixel  # Edge pixel.
 
-    """ ┌───────────────┐
+    """ ╭───────────────╮
         │ Vertical pass │
-        └───────────────┘ """
+        ╰───────────────╯ """
 
     def _criterion_y(channel: int, channel_sum: int) -> bool:
         """Threshold criterion for y, single channel"""
@@ -163,9 +199,9 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
                 pixels_sum = pixel
             result_image[cy(y)][x] = pixel
 
-    """ ┌────────────────┐
+    """ ╭────────────────╮
         │ Alpha handling │
-        └────────────────┘ """
+        ╰────────────────╯ """
     if Z == 1 or Z == 3:
         return result_image
     else:

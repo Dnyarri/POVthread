@@ -5,14 +5,14 @@
 Adaptive color average image filtering
 ======================================
 
-Average image colors in a pixel row until difference between averaged
+Averaging image colors in a pixel row until difference between averaged
 and next pixel in a row reach threshold. Then repeat the same in column.
 Thus filter changes smooth image areas to completely flat colored,
 with detailed edges between them.
 
-`_Averager`_ was initially created for `POV-Ray Thread`_ but later on evolved
-from small auxiliary accessory for testing filter module to an interesting example
-of pure Python image filtering application.
+`Averager`_ was initially created as `POV-Ray Thread`_ auxiliary but later on
+evolved from small accessory for testing filter module to
+an interesting example of pure Python image filtering application.
 
 Input: PNG, PPM, PGM, PBM.
 
@@ -30,7 +30,7 @@ Main site: `The Toad's Slimy Mudhole`_
 
 .. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
 
-`_Averager`_ preview
+`Averager`_ preview
 
 .. _Averager: https://dnyarri.github.io/povthread.html#averager
 
@@ -42,7 +42,7 @@ POV-Ray Thread source `@Github`_
 
 # History:
 # --------
-# 0.10.14.0   Initial version of filter host template - 14 Oct 2024.Using png in tempfile preview etc.
+# 0.10.14.0   Initial version of filter host template - 14 Oct 2024. Using png in tempfile preview etc.
 # 0.10.17.3   Linked standalone version.
 # 1.14.1.1    Preview etc with builtin PyPNM. Image list moved to global to reduce rereading.
 # 1.16.4.24   PNG and PPM support, zoom in and out, numerous fixes.
@@ -57,7 +57,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.23.9.23'
+__version__ = '3.23.13.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'

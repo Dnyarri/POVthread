@@ -24,13 +24,16 @@ Perlin noise, simulating base canvas deformation.
 Usage
 -----
 
-**`stitch.stitch(image3D, maxcolors, savefilename)`**
+::
+
+    stitch.stitch(image3D, maxcolors, savefilename)
 
 where:
 
-- `image3d`: image as list of lists of lists of int channel values;
-- `maxcolors`: maximum value of int in `image3d` list;
-- `savefilename`: name of POV-Ray file to export.
+:image3d: input image as list of lists of lists of int channel values;
+:maxcolors: maximum of channel value in ``image3d`` list (int),
+    255 for 8 bit and 65535 for 16 bit input;
+:savefilename: name of POV-Ray file to export (str).
 
 ----
 Main site: `The Toad's Slimy Mudhole`_
@@ -51,16 +54,16 @@ POV-Ray Thread Git repositories: `@Github`_, `@Gitflic`_
 
 # History:
 # --------
-# 2007 AD     General idea illustration for Kris Zaklika.
-# 1.10.04.01  Initial public release of Python version.
-# 1.16.6.2    Modularization.
-# 1.22.01.11  Acceleration, numerous internal changes.
+# ca. 2007 AD   General idea illustration for Kris Zaklika.
+# 1.10.4.1      Initial public release of Python version.
+# 1.16.6.2      Modularization.
+# 1.22.1.11     Acceleration, numerous internal changes.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.9.23'
+__version__ = '1.23.13.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -72,9 +75,9 @@ from time import strftime, time
 def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
     """POV-Ray Thread export, Cross stitch pattern.
 
-    - `image3d` - image as list of lists of lists of int channel values;
-    - `maxcolors` - maximum value of int in `image3d` list, either 255 or 65535;
-    - `resultfilename` - name of POV-Ray file to export.
+    :image3d: image as list of lists of lists of int channel values;
+    :maxcolors: maximum value of int in ``image3d`` list, either 255 or 65535;
+    :resultfilename: name of POV-Ray file to export.
 
     """
 

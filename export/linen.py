@@ -4,9 +4,9 @@
 ======================
 POV-Ray Thread: Linen
 ======================
---------------------------------------------------------------
+--------------------------------------------------------
 Converting image to canvas simulation in POV-Ray format.
---------------------------------------------------------------
+--------------------------------------------------------
 
 Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
 aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
@@ -25,13 +25,16 @@ Perlin noise, simulating canvas deformation.
 Usage
 -----
 
-**`linen.linen(image3D, maxcolors, savefilename)`**
+::
+
+    linen.linen(image3D, maxcolors, savefilename)
 
 where:
 
-- `image3d`: image as list of lists of lists of int channel values;
-- `maxcolors`: maximum value of int in `image3d` list;
-- `savefilename`: name of POV-Ray file to export.
+:image3d: input image as list of lists of lists of int channel values;
+:maxcolors: maximum of channel value in ``image3d`` list (int),
+    255 for 8 bit and 65535 for 16 bit input;
+:savefilename: name of POV-Ray file to export (str).
 
 ----
 Main site: `The Toad's Slimy Mudhole`_
@@ -52,15 +55,15 @@ POV-Ray Thread Git repositories: `@Github`_, `@Gitflic`_
 
 # History:
 # --------
-# 1.10.04.01  Initial public release.
-# 1.16.5.23   Modularization.
-# 1.22.01.11  Acceleration, numerous internal changes.
+# 1.10.4.01     Initial public release.
+# 1.16.5.23     Modularization.
+# 1.22.1.11     Acceleration, numerous internal changes.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.9.23'
+__version__ = '1.23.13.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -71,9 +74,9 @@ from time import strftime, time
 def linen(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
     """POV-Ray Thread export, Linen pattern.
 
-    - `image3d` - image as list of lists of lists of int channel values;
-    - `maxcolors` - maximum value of int in `image3d` list, either 255 or 65535;
-    - `resultfilename` - name of POV-Ray file to export.
+    :image3d: image as list of lists of lists of int channel values;
+    :maxcolors: maximum value of int in ``image3d`` list, either 255 or 65535;
+    :resultfilename: name of POV-Ray file to export.
 
     """
 
