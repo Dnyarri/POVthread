@@ -18,11 +18,11 @@ Usage
 
 where:
 
-:source_image: input image as list of lists of lists of int channel values;
-:threshold_x: threshold upon which row averaging stops and restarts from this pixel on (int);
-:threshold_y: threshold upon which column averaging stops and restarts from this pixel on (int);
-:wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode (bool);
-:keep_alpha: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color (bool).
+- ``source_image``: input image as list of lists of lists of int channel values;
+- ``threshold_x``: threshold upon which row averaging stops and restarts from this pixel on (int);
+- ``threshold_y``: threshold upon which column averaging stops and restarts from this pixel on (int);
+- ``wrap_around``: whether image edge pixel will be read in "repeat edge" or "wrap around" mode (bool);
+- ``keep_alpha``: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color (bool).
 
 Both thresholds (int) are used directly, regardless of 8 bpc or 16 bpc color depth. Filter input does not include color depth and/or range in any form, therefore threshold range normalization, if deemed necessary, should be performed at host end.
 
@@ -88,11 +88,15 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
 def filter(source_image: list[list[list[int]]], threshold_x: int | float, threshold_y: int | float, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
     """Average image pixels in a row until `abs(average - current) > threshold` criterion met, then repeat in a column.
 
-    :source_image: input image as list of lists of lists of int channel values;
-    :threshold_x: threshold upon which row averaging stops and restarts from this pixel on;
-    :threshold_y: threshold upon which column averaging stops and restarts from this pixel on;
-    :wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode;
-    :keep_alpha: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color.
+    .. function:: filter(source_image, threshold_x, threshold_y, wrap_around, keep_alpha)
+    :param source_image: input image as list of lists of lists of int channel values;
+    :type source_image: list[list[list[int]]]
+    :param int threshold_x: threshold upon which row averaging stops and restarts from this pixel on;
+    :param int threshold_y: threshold upon which column averaging stops and restarts from this pixel on;
+    :param bool wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode;
+    :param bool keep_alpha: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color;
+    :return: filtered image.
+    :rtype: list[list[list[int]]]
 
     """
 

@@ -30,10 +30,10 @@ Usage
 
 where:
 
-:image3d: input image as list of lists of lists of int channel values;
-:maxcolors: maximum of channel value in ``image3d`` list (int),
-    255 for 8 bit and 65535 for 16 bit input;
-:savefilename: name of POV-Ray file to export (str).
+- ``image3d``: image as list of lists of lists of int channel values;
+- ``maxcolors``: maximum of channel value in ``image3d`` list (int),
+255 for 8 bit and 65535 for 16 bit input;
+- ``savefilename``: name of POV-Ray file to export (str).
 
 ----
 Main site: `The Toad's Slimy Mudhole`_
@@ -75,9 +75,12 @@ from time import strftime, time
 def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
     """POV-Ray Thread export, Cross stitch pattern.
 
-    :image3d: image as list of lists of lists of int channel values;
-    :maxcolors: maximum value of int in ``image3d`` list, either 255 or 65535;
-    :resultfilename: name of POV-Ray file to export.
+        .. function:: stitch(image3d, maxcolors, resultfilename)
+        :param image3d: image as list of lists of lists of int channel values;
+        :type image3d: list[list[list[int]]
+        :param int maxcolors: maximum of channel value in ``image3d`` list (int),
+    255 for 8 bit and 65535 for 16 bit input;
+        :param str resultfilename: name of POV file to export.
 
     """
 
