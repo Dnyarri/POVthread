@@ -61,7 +61,7 @@ from pypng.pnglpng import png2list
 from pypnm.pnmlpnm import list2bin, pnm2list
 
 from export import linen, stitch
-from filter import avgrow
+from filter.avgrow import filter
 
 """ ╔══════════════════════════════════╗
     ║ GUI events and functions thereof ║
@@ -253,7 +253,7 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
-    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
+    image3D = filter(source_image3D, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
 
     # ↓ preview result
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)

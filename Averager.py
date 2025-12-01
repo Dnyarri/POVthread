@@ -73,7 +73,7 @@ from tkinter.messagebox import showinfo
 from pypng.pnglpng import list2png, png2list
 from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
 
-from filter import avgrow
+from filter.avgrow import filter
 
 """ ╔══════════════════════════════════╗
     ║ GUI events and functions thereof ║
@@ -282,7 +282,7 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
-    image3D = avgrow.filter(source_image3D, threshold_x, threshold_y, wraparound, keep_alpha)
+    image3D = filter(source_image3D, threshold_x, threshold_y, wraparound, keep_alpha)
 
     # ↓ preview result
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
