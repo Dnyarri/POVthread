@@ -52,12 +52,14 @@ POV-Ray Thread source `@Github`_
 # 3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
 #       image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
 # 1.23.1.1    Even more GUI improvements, including spinbox control with mousewheel.
+# 3.24.14.14  Suitable filter execution time display added to info string.
+#       Result may be copied to clipboard on info string Ctrl+Click.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.23.13.13'
+__version__ = '3.24.14.14'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -65,7 +67,7 @@ __status__ = 'Production'
 from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
-from time import ctime  # Used to show file info only
+from time import time, ctime
 from tkinter import BooleanVar, Button, Checkbutton, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
@@ -267,7 +269,7 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
     global preview, preview_filtered
     global X, Y, Z, maxcolors, image3D, source_image3D, info
 
@@ -282,7 +284,9 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
+    start = time()
     image3D = filter(source_image3D, threshold_x, threshold_y, wraparound, keep_alpha)
+    timing = time() - start
 
     # ↓ preview result
     preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
@@ -530,6 +534,7 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 product_name = 'Averager'
+timing = None
 
 sortir = Tk()
 
@@ -556,8 +561,13 @@ butt = {
     'activebackground': '#E5F1FB',
 }
 
+# ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
+# ↓ Info string binding for displaying filter execution time
+info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
+info_string.bind('<Leave>', lambda event=None: UINormal())
+info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
 
 # ↓ initial sortir binding, before image load
 sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
