@@ -45,12 +45,12 @@ Later this filtering module was added to *POVRayThread*, making *Averager* redun
 
 ### Related
 
-[Dnyarri website - other Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for image editing, Scale2x, Scale3x, Scale2xSFX and Scale3xSFX, PyPNM, POV-Ray, etc.") by the same author.
+[Dnyarri website - other Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
 
 [POV-Ray Thread page with illustrations](https://dnyarri.github.io/povthread.html "POV-Ray Thread rendering example and Averager preview"), explanations etc.
 
 [Ancestor project: POV‑Ray Mosaic](https://dnyarri.github.io/povzaika.html "POV‑Ray Mosaic: converting bitmap into mosaic of 3D elements packed in hexagonal, square or triangular tiles")
 
-[POV-Ray Thread source at github](https://github.com/Dnyarri/POVthread "POV-Ray Thread source")
+[POV-Ray Thread source at Github](https://github.com/Dnyarri/POVthread "POV-Ray Thread source")
 
-[POV-Ray Thread source at gitflic mirror](https://gitflic.ru/project/dnyarri/povthread "POV-Ray Thread source")
+[POV-Ray Thread source at Gitflic mirror](https://gitflic.ru/project/dnyarri/povthread "POV-Ray Thread source")
