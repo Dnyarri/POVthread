@@ -26,12 +26,12 @@ Usage
 
 ::
 
-    stitch.stitch(image3D, maxcolors, savefilename)
+    stitch.stitch(source_image, maxcolors, savefilename)
 
 where:
 
-- ``image3d``: image as list of lists of lists of int channel values;
-- ``maxcolors``: maximum of channel value in ``image3d`` list (int),
+- ``source_image``: image as list of lists of lists of int channel values;
+- ``maxcolors``: maximum of channel value in ``source_image`` list (int),
 255 for 8 bit and 65535 for 16 bit input;
 - ``savefilename``: name of POV-Ray file to export (str).
 
@@ -63,7 +63,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.13.13'
+__version__ = '1.24.27.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -72,20 +72,20 @@ from random import random
 from time import strftime, time
 
 
-def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
-    """POV-Ray Thread export, Cross stitch pattern.
+def stitch(source_image: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
+    """POV-Ray Thread export, cross stitch pattern.
 
-        :param image3d: image as list of lists of lists of int channel values;
-        :type image3d: list[list[list[int]]
-        :param int maxcolors: maximum of channel value in ``image3d`` list (int),
+        :param source_image: image as list of lists of lists of int channel values;
+        :type source_image: list[list[list[int]]
+        :param int maxcolors: maximum of channel value in ``source_image`` list (int),
     255 for 8 bit and 65535 for 16 bit input;
         :param str resultfilename: name of POV file to export.
 
     """
 
-    Y = len(image3d)
-    X = len(image3d[0])
-    Z = len(image3d[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     """ ╔═══════════════╗
         ║ src functions ║
@@ -98,7 +98,7 @@ def stitch(image3d: list[list[list[int]]], maxcolors: int, resultfilename: str) 
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))
 
-        channelvalue = image3d[cy][cx][z]
+        channelvalue = source_image[cy][cx][z]
 
         return channelvalue
 

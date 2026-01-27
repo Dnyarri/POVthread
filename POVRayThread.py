@@ -44,7 +44,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2025 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.13.13'
+__version__ = '1.24.27.19'  # Main version № match that for export module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -146,8 +146,8 @@ def GetSource(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal
     global preview, preview_src, preview_filtered  # preview and copies of preview
-    global X, Y, Z, maxcolors, image3D, info, sourcefilename
-    global source_image3D  # deep copy of source data
+    global X, Y, Z, maxcolors, result_image, info, sourcefilename
+    global source_image  # deep copy of source data
 
     zoom_factor = 0
     view_src = True
@@ -159,18 +159,13 @@ def GetSource(event=None) -> None:
 
     UIBusy()
 
-    """ ┌────────────────────────────────────────┐
-        │ Loading file, converting data to list. │
-        │  NOTE: maxcolors, image3D are GLOBALS! │
-        └────────────────────────────────────────┘ """
-
     if Path(sourcefilename).suffix.lower() == '.png':
         # ↓ Reading PNG image as list
-        X, Y, Z, maxcolors, image3D, info = png2list(sourcefilename)
+        X, Y, Z, maxcolors, result_image, info = png2list(sourcefilename)
 
     elif Path(sourcefilename).suffix.lower() in ('.ppm', '.pgm', '.pbm', '.pnm'):
         # ↓ Reading PNM image as list
-        X, Y, Z, maxcolors, image3D = pnm2list(sourcefilename)
+        X, Y, Z, maxcolors, result_image = pnm2list(sourcefilename)
 
     else:
         raise ValueError('Extension not recognized')
@@ -179,13 +174,13 @@ def GetSource(event=None) -> None:
         │ Creating deep copy of source 3D list       │
         │ to avoid accumulating repetitive filtering │
         └────────────────────────────────────────────┘ """
-    source_image3D = deepcopy(image3D)
+    source_image = deepcopy(result_image)
 
     """ ┌───────────────┐
         │ Viewing image │
         └───────────────┘ """
     # ↓ Converting list to bytes of PPM-like structure "preview_data" in memory
-    preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
+    preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     # ↓ Now generating preview from "preview_data" bytes using Tkinter
     preview = PhotoImage(data=preview_data)
     # ↓ Finally the show part
@@ -242,7 +237,7 @@ def RunFilter(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered
     global preview, preview_filtered
-    global X, Y, Z, maxcolors, image3D, info
+    global X, Y, Z, maxcolors, result_image, info
 
     # ↓ filtering part
     threshold_x = maxcolors * int(spin01.get()) // 255  # Rescaling for 16-bit
@@ -253,10 +248,10 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
-    image3D = filter(source_image3D, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
+    result_image = filter(source_image, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
 
     # ↓ preview result
-    preview_data = list2bin(image3D, maxcolors, show_chessboard=True)
+    preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     preview_filtered = PhotoImage(data=preview_data)
 
     # ↓ Flagging as filtered
@@ -365,10 +360,10 @@ def SaveAsLinen() -> None:
 
     """ ┌─────────────────────────────────────────────────────┐
         │ Converting list to POV and saving as "savefilename" │
-        │ using global maxcolors, image3D                     │
+        │ using global maxcolors, result_image                │
         └─────────────────────────────────────────────────────┘ """
     UIBusy()
-    linen.linen(image3D, maxcolors, savefilename)
+    linen.linen(result_image, maxcolors, savefilename)
     UINormal()
 
 
@@ -390,10 +385,10 @@ def SaveAsStitch() -> None:
 
     """ ┌─────────────────────────────────────────────────────┐
         │ Converting list to POV and saving as "savefilename" │
-        │ using global maxcolors, image3D                     │
+        │ using global maxcolors, result_image                │
         └─────────────────────────────────────────────────────┘ """
     UIBusy()
-    stitch.stitch(image3D, maxcolors, savefilename)
+    stitch.stitch(result_image, maxcolors, savefilename)
     UINormal()
 
 
@@ -521,7 +516,18 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
 info01.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_x, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
+spin01 = Spinbox(
+    frame_top,
+    from_=0,
+    to=255,
+    increment=1,
+    textvariable=ini_threshold_x,
+    state='disabled',
+    width=3,
+    font=('helvetica', 11),
+    validate='key',
+    validatecommand=(validate_entry, '%P'),
+)
 spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Y-pass threshold control
@@ -529,7 +535,18 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
 info02.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(frame_top, from_=0, to=255, increment=1, textvariable=ini_threshold_y, state='disabled', width=3, font=('helvetica', 11), validate='key', validatecommand=(validate_entry, '%P'))
+spin02 = Spinbox(
+    frame_top,
+    from_=0,
+    to=255,
+    increment=1,
+    textvariable=ini_threshold_y,
+    state='disabled',
+    width=3,
+    font=('helvetica', 11),
+    validate='key',
+    validatecommand=(validate_entry, '%P'),
+)
 spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
