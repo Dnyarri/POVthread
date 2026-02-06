@@ -8,12 +8,6 @@ POV-Ray Thread: Linen
 Converting image to canvas simulation in POV-Ray format.
 --------------------------------------------------------
 
-Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
-aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
-
-Overview
---------
-
 **linen** export module present function for converting images
 and image-like nested lists to an assembly of 3D objects,
 colored after source pixels, and forming a simulation of
@@ -33,7 +27,7 @@ where:
 
 - ``source_image``: image as list of lists of lists of int channel values;
 - ``maxcolors``: maximum of channel value in ``source_image`` list (int),
-255 for 8 bit and 65535 for 16 bit input;
+  255 for 8 bit and 65535 for 16 bit input;
 - ``savefilename``: name of POV-Ray file to export (str).
 
 ----
@@ -45,7 +39,7 @@ Main site: `The Toad's Slimy Mudhole`_
 
 .. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
 
-POV-Ray Thread Git repositories: `@Github`_, `@Gitflic`_
+POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 
 .. _@Github: https://github.com/Dnyarri/POVthread
 
@@ -60,10 +54,10 @@ POV-Ray Thread Git repositories: `@Github`_, `@Gitflic`_
 # 1.22.1.11     Acceleration, numerous internal changes.
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2007-2025 Ilya Razmanov'
+__copyright__ = '(c) 2007-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.24.27.19'
+__version__ = '1.26.6.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -74,11 +68,11 @@ from time import strftime, time
 def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: str) -> None:
     """POV-Ray Thread export, linen pattern.
 
-        :param source_image: image as list of lists of lists of int channel values;
-        :type source_image: list[list[list[int]]
-        :param int maxcolors: maximum of channel value in ``source_image`` list (int),
-    255 for 8 bit and 65535 for 16 bit input;
-        :param str resultfilename: name of POV file to export.
+    :param source_image: image as list of lists of lists of int channel values;
+    :type source_image: list[list[list[int]]
+    :param int maxcolors: maximum of channel value in ``source_image`` list (int),
+        255 for 8 bit and 65535 for 16 bit input;
+    :param str resultfilename: name of POV file to export.
 
     """
 
@@ -90,7 +84,7 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
         ║ src functions ║
         ╚═══════════════╝ """
 
-    def src(x: int | float, y: int | float, z: int) -> int:
+    def _src(x: int | float, y: int | float, z: int) -> int:
         """Analog of src from FilterMeister, force repeat edge instead of out of range.
         Returns int channel value z for pixel x, y."""
 
@@ -244,11 +238,11 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
         for x in range(0, X, 1):
             # Colors normalized to 0..1
             if Z > 2:
-                r = float(src(x, y, 0)) / maxcolors
-                g = float(src(x, y, 1)) / maxcolors
-                b = float(src(x, y, 2)) / maxcolors
+                r = _src(x, y, 0) / maxcolors
+                g = _src(x, y, 1) / maxcolors
+                b = _src(x, y, 2) / maxcolors
             else:
-                r = g = b = float(src(x, y, 0)) / maxcolors
+                r = g = b = _src(x, y, 0) / maxcolors
 
             # Grouping repetitive strings together for easy editing
             normal_string = 'normal{thingie_normal rotate(normal_rotate_rnd * (<rand(rnd_1), rand(rnd_1), rand(rnd_1)> - 0.5)) translate(normal_move_rnd * <rand(rnd_1), rand(rnd_1), rand(rnd_1)>)}'
@@ -325,8 +319,6 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
     # Close output
     resultfile.close()
 
-
-# ↑ linen finished
 
 # ↓ Dummy stub for standalone execution attempt
 if __name__ == '__main__':

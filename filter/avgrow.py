@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-"""
-Averaging image pixels in a row until reaching ``abs(average - current) > threshold``,
-then repeating in a column.
+"""Averaging image pixels in a row until reaching
+``abs(average - current) > threshold``, then repeating in a column.
 
-Pure Python image filtering module for `POV-Ray Thread`_ and `Averager`_ applications.
+Pure Python image filtering module for `POV-Ray Thread`_ and
+`Averager`_ applications.
+
 Initial purpose is transforming row sequences of closely colored pixels
 into a sequence of the same solid color to simulate single thread in canvas;
 however filter may work with columns as well, producing squarish flat color areas.
@@ -21,24 +22,30 @@ Usage
 where:
 
 - ``source_image``: input image as list of lists of lists of int channel values;
-- ``threshold_x``: threshold upon which row averaging stops and restarts from this pixel on (int);
-- ``threshold_y``: threshold upon which column averaging stops and restarts from this pixel on (int);
-- ``wrap_around``: whether image edge pixel will be read in "repeat edge" or "wrap around" mode (bool);
-- ``keep_alpha``: whether returned filtered image will have alpha channel matching source image, or alpha channel will be filtered along with color (bool).
+- ``threshold_x``: threshold upon which row averaging stops
+  and restarts from this pixel on (int);
+- ``threshold_y``: threshold upon which column averaging stops
+  and restarts from this pixel on (int);
+- ``wrap_around``: whether image edge pixel will be read in
+  "repeat edge" or "wrap around" mode (bool);
+- ``keep_alpha``: whether returned filtered image will have
+  alpha channel matching source image, or alpha channel will be
+  filtered along with color (bool).
 
-Both thresholds (int) are used directly, regardless of 8 bpc or 16 bpc color depth. Filter input does not include color depth and/or range in any form, therefore threshold range normalization, if deemed necessary, should be performed at host end.
+.. note:: Both threshold values (int) are used literally,
+    regardless of 8 bpc or 16 bpc color depth.
+    Filter input does not include color depth and/or range in any form,
+    therefore threshold range normalization, if deemed necessary,
+    must be performed at host end.
 
 -----
-Created by: `Ilya Razmanov<mailto:ilyarazmanov@gmail.com>`_
-aka `Ilyich the Toad<mailto:amphisoft@gmail.com>`_.
-
 Main site: `The Toad's Slimy Mudhole`_
 
 `POV-Ray Thread`_ previews and description
 
-`Averager`_ preview
+`Averager`_ preview and description
 
-POV-Ray Thread source `@Github`_
+POV-Ray Thread source: main `@Github`_ and mirror `@Gitflic`_
 
 .. _The Toad's Slimy Mudhole: https://dnyarri.github.io
 
@@ -48,6 +55,7 @@ POV-Ray Thread source `@Github`_
 
 .. _@Github: https://github.com/Dnyarri/POVthread
 
+.. _@Gitflic: https://gitflic.ru/project/dnyarri/povthread
 
 """
 
@@ -55,7 +63,7 @@ POV-Ray Thread source `@Github`_
 #   --------
 # 0.10.12.3     Initial version - 12 Oct 2024. RGB only.
 # 0.10.13.2     Forces RGB, skips alpha. Changed threshold condition to r, g, b separately.
-#       Seem to be just what I need.
+#                   Seem to be just what I need.
 # 0.10.25.1     Bugfix for tiny details.
 # 1.16.5.10     Modularization, some optimization. Force keep alpha.
 # 1.17.10.1     Edge condition bugfix.
@@ -63,16 +71,17 @@ POV-Ray Thread source `@Github`_
 # 3.20.1.1      Substantial rewriting with `map` to correctly support L. No force RGB anymore.
 # 3.20.7.14     Alpha filtering. Full support for L, LA, RGB, RGBA filtering with one `map`.
 # 3.20.20.3     Code harmonization. Lambdas completely replaced with operators
-#       and defined functions to improve speed.
+#                   and defined functions to improve speed.
 # 3.22.13.11    Unnecessary map to list conversions removed,
-#       necessary ones replaced with [*map] unpacking.
+#                   necessary ones replaced with [*map] unpacking.
 # 3.22.18.8     Evasive bug discovered and presumably exterminated.
+# 3.26.6.18     Major minor refurbishment: docstring etc. etc.
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2024-2025 Ilya Razmanov'
+__copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.24.1.9'
+__version__ = '3.26.6.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -88,14 +97,21 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
 
 
 def filter(source_image: list[list[list[int]]], threshold_x: int | float, threshold_y: int | float, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
-    """Average image pixels in a row until `abs(average - current) > threshold` criterion met, then repeat in a column.
+    """Average image pixels in a row until
+    `abs(average - current) > threshold` criterion met,
+    then repeat in a column.
 
     :param source_image: input image as list of lists of lists of int channel values;
     :type source_image: list[list[list[int]]]
-    :param int threshold_x: threshold upon which row averaging stops and restarts from this pixel on;
-    :param int threshold_y: threshold upon which column averaging stops and restarts from this pixel on;
-    :param bool wrap_around: whether image edge pixel will be read in "repeat edge" or "wrap around" mode;
-    :param bool keep_alpha: whether returned filtered image will have alpha channel copied from source image, or alpha channel will be filtered along with color;
+    :param int threshold_x: threshold upon which row averaging stops
+        and restarts from this pixel on;
+    :param int threshold_y: threshold upon which column averaging stops
+        and restarts from this pixel on;
+    :param bool wrap_around: whether image edge pixel will be read in
+        "repeat edge" or "wrap around" mode;
+    :param bool keep_alpha: whether returned filtered image will have
+        alpha channel copied from source image, or alpha channel will be
+        filtered along with color;
     :return: filtered image of the same size and structure as ``source_image``.
     :rtype: list[list[list[int]]]
 
@@ -119,25 +135,25 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
         │ kept here just for reference and reuse.  │
         ╰──────────────────────────────────────────╯ """
 
-    def cx_repeat(x: int | float) -> int:
+    def _cx_repeat(x: int | float) -> int:
         """x for repeat edge"""
         return min((X - 1), max(0, int(x)))  # x repeat edge
 
-    def cx_wrap(x: int | float) -> int:
+    def _cx_wrap(x: int | float) -> int:
         """x for wrap around"""
         return int(x) % X  # x wrap around
 
-    def cy_repeat(y: int | float) -> int:
+    def _cy_repeat(y: int | float) -> int:
         """y for repeat edge"""
         return min((Y - 1), max(0, int(y)))  # y repeat edge
 
-    def cy_wrap(y: int | float) -> int:
+    def _cy_wrap(y: int | float) -> int:
         """y for wrap around"""
         return int(y) % Y  # y wrap around
 
     # ↓ Setting wrap around as default, with overhead = 0 it works like "as is".
-    cx = cx_wrap
-    cy = cy_wrap
+    cx = _cx_wrap
+    cy = _cy_wrap
 
     if wrap_around:  # Threshold may never be met, yet loop must be stopped somewhere.
         x_overhead = X  # Smaller values sometimes do not work, depending on image;
@@ -219,8 +235,6 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
             return resultimage_plus_alpha
         else:
             return result_image
-
-
 # ↑ filter finished
 
 # ↓ Dummy stub for standalone execution attempt

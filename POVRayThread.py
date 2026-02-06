@@ -24,9 +24,11 @@ Main site: `The Toad's Slimy Mudhole`_
 
 .. _POV-Ray Thread: https://dnyarri.github.io/povthread.html
 
-POV-Ray Thread source `@Github`_
+POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 
 .. _@Github: https://github.com/Dnyarri/POVthread
+
+.. _@Gitflic: https://gitflic.ru/project/dnyarri/povthread
 
 """
 
@@ -41,10 +43,10 @@ POV-Ray Thread source `@Github`_
 # 1.23.1.1    Even more numerous GUI improvements, including spinbox control with mousewheel.
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2024-2025 Ilya Razmanov'
+__copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.24.27.19'  # Main version № match that for export module
+__version__ = '1.26.6.18'  # Main version № match that for export module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -433,7 +435,7 @@ product_name = 'POV-Ray Thread'
 
 sortir = Tk()
 
-sortir.iconphoto(True, PhotoImage(data='P6\n2 8\n255\n'.encode(encoding='ascii') + randbytes(2 * 8 * 3)))
+sortir.iconphoto(True, PhotoImage(data='P6\n3 16\n255\n'.encode(encoding='ascii') + randbytes(3 * 16 * 3)))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
