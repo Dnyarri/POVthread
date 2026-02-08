@@ -41,12 +41,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 1.16.20.20  Changed GUI to menus.
 # 1.20.20.1   Numerous minor GUI improvements and code cleanup.
 # 1.23.1.1    Even more numerous GUI improvements, including spinbox control with mousewheel.
+# 3.26.8.8    Minimal debugging, some code restructure to simplify further editing.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.26.7.14'  # Main version № match that of export module
+__version__ = '1.26.8.8'  # Main version № match that of export module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -209,11 +210,6 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
-    # ↓ Spin
-    spin01.unbind('<MouseWheel>')
-    spin01.bind('<MouseWheel>', incWheel)
-    spin02.unbind('<MouseWheel>')
-    spin02.bind('<MouseWheel>', incWheel)
     # ↓ enabling Save as...
     menu02.entryconfig('Export Linen...', state='normal')
     menu02.entryconfig('Export Stitch...', state='normal')
@@ -229,11 +225,16 @@ def GetSource(event=None) -> None:
     # ↓ "Filter" mouseover
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
-    # ↓ Entry mouseovers
+    # ↓ Spinbox mouseovers
     spin01.bind('<Enter>', lambda event=None: spin01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     spin01.bind('<Leave>', lambda event=None: spin01.config(foreground=butt['foreground'], background='white'))
     spin02.bind('<Enter>', lambda event=None: spin02.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     spin02.bind('<Leave>', lambda event=None: spin02.config(foreground=butt['foreground'], background='white'))
+    # ↓ Spinbox scroll
+    spin01.unbind('<MouseWheel>')
+    spin01.bind('<MouseWheel>', incWheel)
+    spin02.unbind('<MouseWheel>')
+    spin02.bind('<MouseWheel>', incWheel)
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     zanyato.focus_set()
@@ -405,6 +406,8 @@ def valiDig(new_value):
     if new_value.strip() == '':
         return True
     try:
+        if new_value.startswith('0'):
+            return False
         _ = int(new_value)
         if _ >= 0 and _ < 256:
             return True
@@ -465,12 +468,6 @@ info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
-# ↓ initial sortir binding, before image load
-sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
-sortir.bind_all('<Alt-f>', ShowMenu)
-sortir.bind_all('<Control-o>', GetSource)
-sortir.bind_all('<Control-q>', DisMiss)
-
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
@@ -508,9 +505,6 @@ menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
 butt_file['menu'] = menu02
-
-butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
-butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
 
 butt_file.focus_set()  # Setting focus to "File..."
 
@@ -588,9 +582,6 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
-zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
-frame_preview.bind('<Double-Button-1>', GetSource)
-zanyato.pack(side='top')
 
 frame_zoom = Frame(frame_preview, width=300, borderwidth=2, relief='groove')
 frame_zoom.pack(side='bottom')
@@ -605,6 +596,22 @@ label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disa
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
 transparent_controls = (spin01, spin02)  # To be cut off global evens
+
+""" ┌─────────────────────────────────────────────┐
+    │ Binding everything that does not need image │
+    └────────────────────────────────────────────-┘ """
+# ↓ "File..." mouseover
+butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
+butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
+# ↓ Double-click image area to "Open..."
+zanyato.bind('<Double-Button-1>', GetSource)
+frame_preview.bind('<Double-Button-1>', GetSource)
+zanyato.pack(side='top')
+# ↓ Whole sortir binding menu, "Open..." and "Exit"
+sortir.bind_all('<Button-3>', ShowMenu)
+sortir.bind_all('<Alt-f>', ShowMenu)
+sortir.bind_all('<Control-o>', GetSource)
+sortir.bind_all('<Control-q>', DisMiss)
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()

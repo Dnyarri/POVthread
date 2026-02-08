@@ -41,24 +41,30 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 
 # History:
 # --------
-# 0.10.14.0   Initial version of filter host template - 14 Oct 2024. Using png in tempfile preview etc.
+# 0.10.14.0   Initial version of filter host template - 14 Oct 2024.
+#       Using png in tempfile preview etc.
 # 0.10.17.3   Linked standalone version.
-# 1.14.1.1    Preview etc with builtin PyPNM. Image list moved to global to reduce rereading.
+# 1.14.1.1    Preview etc with builtin PyPNM. Image list moved to global
+#       to reduce rereading.
 # 1.16.4.24   PNG and PPM support, zoom in and out, numerous fixes.
 # 1.16.9.14   Preview switch source/result added. Zoom on click now mimic
 #       Photoshop Ctrl + Click and Alt + Click.
 # 2.16.20.20  Changed GUI to menus.
 # 3.20.8.8    Changed GUI to grid to fit all new features. More detailed image info;
-#       image mode and edited/saved status displayed in window title (and task manager) a-la Photoshop.
+#       image mode and edited/saved status displayed in window title
+#       and task manager) a-la Photoshop.
 # 1.23.1.1    Even more GUI improvements, including spinbox control with mousewheel.
 # 3.24.14.14  Suitable filter execution time display added to info string.
 #       Result may be copied to clipboard on info string Ctrl+Click.
+# 3.26.8.8    Several bugs fixed, memory requirements reduced due to substantial
+#       onSave() changes.
+#       New bugs are quite possible, yet not found yet.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.7.14'  # Main version № match that of filter module
+__version__ = '3.26.8.8'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -160,14 +166,17 @@ def GetSource(event=None) -> None:
     global X, Y, Z, maxcolors, result_image, info, sourcefilename
     global source_image  # deep copy of source data, to be used as a source for filtering
 
+    old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
+    if sourcefilename == '':
+        sourcefilename = old_sourcefilename
+        return
+
+    # ↓ Next must be set AFTER "sourcefilename", in case of "Open.." cancel
     zoom_factor = 0
     view_src = True
     is_filtered = False
     is_saved = True
-
-    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
-    if sourcefilename == '':
-        return
 
     UIBusy()
 
@@ -227,11 +236,6 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
-    # ↓ Spin
-    spin01.unbind('<MouseWheel>')
-    spin01.bind('<MouseWheel>', incWheel)
-    spin02.unbind('<MouseWheel>')
-    spin02.bind('<MouseWheel>', incWheel)
     # ↓ enabling Save as...
     menu02.entryconfig('Save as...', state='normal')
     sortir.bind_all('<Control-Shift-S>', SaveAs)
@@ -254,11 +258,16 @@ def GetSource(event=None) -> None:
     # ↓ "Filter" mouseover
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
-    # ↓ Entry mouseovers
+    # ↓ Spinbox mouseovers
     spin01.bind('<Enter>', lambda event=None: spin01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     spin01.bind('<Leave>', lambda event=None: spin01.config(foreground=butt['foreground'], background='white'))
     spin02.bind('<Enter>', lambda event=None: spin02.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     spin02.bind('<Leave>', lambda event=None: spin02.config(foreground=butt['foreground'], background='white'))
+    # ↓ Spinbox mouse input
+    spin01.unbind('<MouseWheel>')
+    spin01.bind('<MouseWheel>', incWheel)
+    spin02.unbind('<MouseWheel>')
+    spin02.bind('<MouseWheel>', incWheel)
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     zanyato.focus_set()
@@ -394,9 +403,7 @@ def onSave() -> None:
     global preview_data, preview_filtered, preview_src, info_normal
 
     sourcefilename = resultfilename  # Now saved file becomes new source file
-    source_image = deepcopy(result_image)
-    preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
-    preview_filtered = PhotoImage(data=preview_data)
+    source_image = result_image
     preview_src = preview_filtered
 
     # ↓ disabling save
@@ -502,6 +509,8 @@ def valiDig(new_value):
     if new_value.strip() == '':
         return True
     try:
+        if new_value.startswith('0'):
+            return False
         _ = int(new_value)
         if _ >= 0 and _ < 256:
             return True
@@ -529,7 +538,8 @@ def incWheel(event) -> None:
 """ ╔═══════════╗
     ║ Main body ║
     ╚═══════════╝ """
-
+# ↓ Initializing
+sourcefilename = ''
 zoom_factor = 0
 view_src = True
 is_filtered = False
@@ -542,11 +552,6 @@ sortir.iconphoto(True, PhotoImage(data='P6\n3 16\n255\n'.encode(encoding='ascii'
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
-
-# ↓ Info statuses dictionaries
-info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
-info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
-color_mode_str = ' '
 
 # ↓ Buttons dictionaries
 butt = {
@@ -561,19 +566,13 @@ butt = {
     'activebackground': '#E5F1FB',
 }
 
-# ↓ Info string
+color_mode_str = ' '
+
+# ↓ Info statuses dictionaries
+info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
+info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}  # ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
-# ↓ Info string binding for displaying filter execution time
-info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
-info_string.bind('<Leave>', lambda event=None: UINormal())
-info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
-
-# ↓ initial sortir binding, before image load
-sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
-sortir.bind_all('<Alt-f>', ShowMenu)
-sortir.bind_all('<Control-o>', GetSource)
-sortir.bind_all('<Control-q>', DisMiss)
 
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
@@ -612,9 +611,6 @@ menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
 butt_file['menu'] = menu02
-
-butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
-butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
 
 butt_file.focus_set()  # Setting focus to "File..."
 
@@ -702,8 +698,6 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
-zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
-frame_preview.bind('<Double-Button-1>', GetSource)
 zanyato.pack(side='top')
 
 frame_zoom = Frame(frame_preview, borderwidth=2, relief='groove')
@@ -719,6 +713,25 @@ label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disa
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
 transparent_controls = (spin01, spin02)  # To be cut off global evens
+
+""" ┌─────────────────────────────────────────────┐
+    │ Binding everything that does not need image │
+    └────────────────────────────────────────────-┘ """
+# ↓ Info string binding for displaying filter execution time
+info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
+info_string.bind('<Leave>', lambda event=None: info_string.config(text=info_normal['txt']))
+info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
+# ↓ "File..." mouseover
+butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
+butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
+# ↓ Double-click image area to "Open..."
+zanyato.bind('<Double-Button-1>', GetSource)
+frame_preview.bind('<Double-Button-1>', GetSource)
+# ↓ Whole sortir binding menu, "Open..." and "Exit"
+sortir.bind_all('<Button-3>', ShowMenu)
+sortir.bind_all('<Alt-f>', ShowMenu)
+sortir.bind_all('<Control-o>', GetSource)
+sortir.bind_all('<Control-q>', DisMiss)
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
