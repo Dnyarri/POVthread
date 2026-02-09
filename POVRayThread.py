@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.26.8.8'  # Main version № match that of export module
+__version__ = '1.26.8.20'  # Main version № match that of export module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -147,18 +147,20 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
 def GetSource(event=None) -> None:
     """Open source image and redefine other controls state."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal
+    global zoom_factor, view_src, info_normal
     global preview, preview_src, preview_filtered  # preview and copies of preview
-    global X, Y, Z, maxcolors, result_image, info, sourcefilename
-    global source_image  # deep copy of source data
+    global sourcefilename, X, Y, Z, maxcolors, source_image, info
+    global result_image  # deep copy of source_image to avoid cumulative filtering
 
-    zoom_factor = 0
-    view_src = True
-    is_filtered = is_saved = False
-
+    old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
     if sourcefilename == '':
+        sourcefilename = old_sourcefilename
         return
+
+    # ↓ Next must be set AFTER "sourcefilename", in case of "Open.." cancel
+    zoom_factor = 0
+    view_src = True
 
     UIBusy()
 
@@ -243,7 +245,7 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered
+    global zoom_factor, view_src
     global preview, preview_filtered
     global X, Y, Z, maxcolors, result_image, info
 
@@ -263,7 +265,6 @@ def RunFilter(event=None) -> None:
     preview_filtered = PhotoImage(data=preview_data)
 
     # ↓ Flagging as filtered
-    is_filtered = True
     view_src = False
 
     ShowPreview(preview_filtered, 'Result')
@@ -435,15 +436,14 @@ def incWheel(event) -> None:
 """ ╔═══════════╗
     ║ Main body ║
     ╚═══════════╝ """
-
+# ↓ Initializing
+sourcefilename = ''
 zoom_factor = 0
 view_src = True
-is_filtered = False
 product_name = 'POV-Ray Thread'
 
 sortir = Tk()
-
-sortir.iconphoto(True, PhotoImage(data='P6\n3 16\n255\n'.encode(encoding='ascii') + randbytes(3 * 16 * 3)))
+sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
@@ -454,7 +454,7 @@ butt = {
     'cursor': 'hand2',
     'border': '2',
     'relief': 'groove',
-    'overrelief': 'raised',
+    'overrelief': 'ridge',
     'foreground': 'SystemButtonText',
     'background': 'SystemButtonFace',
     'activeforeground': 'dark blue',

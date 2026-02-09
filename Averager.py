@@ -57,14 +57,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 3.24.14.14  Suitable filter execution time display added to info string.
 #       Result may be copied to clipboard on info string Ctrl+Click.
 # 3.26.8.8    Several bugs fixed, memory requirements reduced due to substantial
-#       onSave() changes.
-#       New bugs are quite possible, yet not found yet.
+#       onSave() changes. New bugs are highly likely to arise, yet not found yet.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.8.8'  # Main version № match that of filter module
+__version__ = '3.26.8.20'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -117,11 +116,12 @@ def UINormal() -> None:
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget['state'] = 'normal'
-        if widget.winfo_class() == 'Button':
+        if widget.winfo_class() in ('Button', 'Checkbutton'):
             widget['cursor'] = 'hand2'
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
-    if Z == 1 or Z == 3:
+    if Z == 1 or Z == 3:  # "Keep alpha" checkbox
         check02['state'] = 'disabled'
+        check02['cursor'] = 'arrow'
     sortir.update()
 
 
@@ -163,8 +163,8 @@ def GetSource(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_src, preview_filtered  # preview and copies of preview
-    global X, Y, Z, maxcolors, result_image, info, sourcefilename
-    global source_image  # deep copy of source data, to be used as a source for filtering
+    global sourcefilename, X, Y, Z, maxcolors, source_image, info
+    global result_image  # deep copy of source_image to avoid cumulative filtering
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
@@ -174,9 +174,8 @@ def GetSource(event=None) -> None:
 
     # ↓ Next must be set AFTER "sourcefilename", in case of "Open.." cancel
     zoom_factor = 0
-    view_src = True
+    view_src = is_saved = True
     is_filtered = False
-    is_saved = True
 
     UIBusy()
 
@@ -278,7 +277,7 @@ def RunFilter(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
     global preview, preview_filtered
-    global X, Y, Z, maxcolors, result_image, source_image, info
+    global X, Y, Z, maxcolors, source_image, info, result_image
 
     # ↓ filtering parameters
     threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
@@ -301,8 +300,7 @@ def RunFilter(event=None) -> None:
 
     # ↓ Flagging as filtered, not saved
     is_filtered = True
-    is_saved = False
-    view_src = False
+    is_saved = view_src = False
 
     ShowPreview(preview_filtered, 'Result')
 
@@ -398,11 +396,12 @@ def SwitchView(event=None) -> None:
 def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
 
-    global sourcefilename, resultfilename, is_saved
-    global source_image, result_image, X, Y, Z, maxcolors
-    global preview_data, preview_filtered, preview_src, info_normal
+    global preview_filtered, preview_src, info_normal
+    global sourcefilename, X, Y, Z, maxcolors, source_image
+    global resultfilename, result_image
 
-    sourcefilename = resultfilename  # Now saved file becomes new source file
+    # ↓ saved file becomes new source file
+    sourcefilename = resultfilename
     source_image = result_image
     preview_src = preview_filtered
 
@@ -424,7 +423,7 @@ def Save(event=None) -> None:
     """Once pressed on Save."""
 
     global is_filtered, is_saved, info_normal, color_mode_str
-    global source_image, sourcefilename, resultfilename
+    global sourcefilename, resultfilename
 
     if is_saved:  # block repetitive saving
         return
@@ -450,7 +449,7 @@ def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
     global is_saved, is_filtered, info_normal, color_mode_str
-    global source_image, sourcefilename, resultfilename
+    global sourcefilename, resultfilename
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
@@ -547,8 +546,7 @@ product_name = 'Averager'
 timing = None
 
 sortir = Tk()
-
-sortir.iconphoto(True, PhotoImage(data='P6\n3 16\n255\n'.encode(encoding='ascii') + randbytes(3 * 16 * 3)))
+sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
@@ -559,7 +557,7 @@ butt = {
     'cursor': 'hand2',
     'border': '2',
     'relief': 'groove',
-    'overrelief': 'raised',
+    'overrelief': 'ridge',
     'foreground': 'SystemButtonText',
     'background': 'SystemButtonFace',
     'activeforeground': 'dark blue',
@@ -570,7 +568,8 @@ color_mode_str = ' '
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
-info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}  # ↓ Info string
+info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
+# ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
@@ -658,12 +657,12 @@ spin02.grid(row=0, column=5)
 
 # ↓ Wrap around control
 ini_wraparound = BooleanVar(value=False)
-check01 = Checkbutton(frame_top, text='Wrap around', font=('helvetica', 9), variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled')
+check01 = Checkbutton(frame_top, text='Wrap around', font=('helvetica', 9), variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled', activeforeground=butt['activeforeground'], activebackground=butt['activebackground'])
 check01.grid(row=1, column=1, sticky='ws')
 
 # ↓ Keep alpha control
 ini_keep_alpha = BooleanVar(value=False)
-check02 = Checkbutton(frame_top, text='Keep alpha', font=('helvetica', 9), variable=ini_keep_alpha, onvalue=True, offvalue=False, state='disabled')
+check02 = Checkbutton(frame_top, text='Keep alpha', font=('helvetica', 9), variable=ini_keep_alpha, onvalue=True, offvalue=False, state='disabled', activeforeground=butt['activeforeground'], activebackground=butt['activebackground'])
 check02.grid(row=1, column=3, columnspan=3, sticky='ws')
 
 # ↓ Filter start
