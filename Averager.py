@@ -63,7 +63,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.8.20'  # Main version № match that of filter module
+__version__ = '3.26.12.12'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -161,12 +161,16 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
 def GetSource(event=None) -> None:
     """Open source image and redefine other controls state."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, operation, timing
     global preview, preview_src, preview_filtered  # preview and copies of preview
     global sourcefilename, X, Y, Z, maxcolors, source_image, info
     global result_image  # deep copy of source_image to avoid cumulative filtering
 
-    old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
+    operation = 'Opening'
+
+    # ↓ Temporary saving info in case of "Open.." cancel
+    old_sourcefilename = sourcefilename
+    # ↓ Opening "Open.." dialog
     sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
     if sourcefilename == '':
         sourcefilename = old_sourcefilename
@@ -178,7 +182,7 @@ def GetSource(event=None) -> None:
     is_filtered = False
 
     UIBusy()
-
+    start = time()
     if Path(sourcefilename).suffix.lower() == '.png':
         # ↓ Reading PNG image as list
         X, Y, Z, maxcolors, source_image, info = png2list(sourcefilename)
@@ -192,6 +196,7 @@ def GetSource(event=None) -> None:
 
     else:
         raise ValueError('Extension not recognized')
+    timing = time() - start
 
     """ ┌────────────────────────────────────────────┐
         │ Creating deep copy of source 3D list       │
@@ -275,7 +280,7 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, operation, timing
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info, result_image
 
@@ -290,6 +295,7 @@ def RunFilter(event=None) -> None:
     """ ┌─────────────────┐
         │ Filtering image │
         └─────────────────┘ """
+    operation = 'Filtering'
     start = time()
     result_image = filter(source_image, threshold_x, threshold_y, wraparound, keep_alpha)
     timing = time() - start
@@ -422,8 +428,10 @@ def onSave() -> None:
 def Save(event=None) -> None:
     """Once pressed on Save."""
 
-    global is_filtered, is_saved, info_normal, color_mode_str
+    global is_filtered, is_saved, info_normal, color_mode_str, operation, timing
     global sourcefilename, resultfilename
+
+    operation = 'Saving'
 
     if is_saved:  # block repetitive saving
         return
@@ -431,12 +439,14 @@ def Save(event=None) -> None:
         return
     resultfilename = sourcefilename
     UIBusy()
+    start = time()
     # ↓ Save format choice
     if Path(resultfilename).suffix.lower() == '.png':
         info['compression'] = 9  # Explicitly setting compression
         list2png(resultfilename, result_image, info)  # Writing file
     elif Path(resultfilename).suffix.lower() in ('.ppm', '.pgm', '.pnm'):
         list2pnm(resultfilename, result_image, maxcolors)  # Writing file
+    timing = time() - start
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
     is_filtered = False
@@ -448,8 +458,10 @@ def Save(event=None) -> None:
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
-    global is_saved, is_filtered, info_normal, color_mode_str
+    global is_saved, is_filtered, info_normal, color_mode_str, operation, timing
     global sourcefilename, resultfilename
+
+    operation = 'Saving'
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
@@ -486,6 +498,7 @@ def SaveAs(event=None) -> None:
     if resultfilename == '':
         return None
     UIBusy()
+    start = time()
     # ↓ Save format choice
     if Path(resultfilename).suffix.lower() == '.png':
         info['compression'] = 9  # Explicitly setting compression
@@ -494,6 +507,7 @@ def SaveAs(event=None) -> None:
         list2pnm(resultfilename, result_image, maxcolors)  # Writing file
     else:
         raise ValueError('Extension not recognized')
+    timing = time() - start
     # ↓ Flagging image as saved, not filtered, and disabling "Save"
     is_saved = True  # to block future repetitive saving
     is_filtered = False
@@ -543,6 +557,7 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 product_name = 'Averager'
+operation = None
 timing = None
 
 sortir = Tk()
@@ -717,7 +732,7 @@ transparent_controls = (spin01, spin02)  # To be cut off global evens
     │ Binding everything that does not need image │
     └────────────────────────────────────────────-┘ """
 # ↓ Info string binding for displaying filter execution time
-info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
+info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'{operation} time: {round(timing, 3)} sec'))
 info_string.bind('<Leave>', lambda event=None: info_string.config(text=info_normal['txt']))
 info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
 # ↓ "File..." mouseover
