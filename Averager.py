@@ -63,7 +63,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.12.12'  # Main version № match that of filter module
+__version__ = '3.26.18.8'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -557,8 +557,8 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 product_name = 'Averager'
-operation = None
-timing = None
+operation = 'Awaiting orders'
+timing = 0
 
 sortir = Tk()
 sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
