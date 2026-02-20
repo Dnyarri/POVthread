@@ -41,13 +41,14 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 1.16.20.20  Changed GUI to menus.
 # 1.20.20.1   Numerous minor GUI improvements and code cleanup.
 # 1.23.1.1    Even more numerous GUI improvements, including spinbox control with mousewheel.
-# 3.26.8.8    Minimal debugging, some code restructure to simplify further editing.
+# 1.26.8.8    Minimal debugging, some code restructure to simplify further editing.
+# 1.26.20.8   Better Spinbox validation.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.26.8.20'  # Main version № match that of export module
+__version__ = '1.26.20.8'  # Main version № match that of export module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -56,7 +57,7 @@ from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
 from time import ctime  # Used to show file info only
-from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk
+from tkinter import Button, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, TclError, Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
@@ -249,7 +250,19 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, result_image, info
 
-    # ↓ filtering part
+    # ↓ Intercept TclError caused by "" input before .get() cause it.
+    try:
+        _ = ini_threshold_x.get()
+        ini_threshold_x.set(int(_))  # removes "-0", "00" etc.
+    except TclError:
+        ini_threshold_x.set(0)
+    try:
+        _ = ini_threshold_y.get()
+        ini_threshold_y.set(int(_))
+    except TclError:
+        ini_threshold_y.set(0)
+
+    # ↓ Now .get() filtering parameters
     threshold_x = maxcolors * int(spin01.get()) // 255  # Rescaling for 16-bit
     threshold_y = maxcolors * int(spin02.get()) // 255
 
@@ -260,7 +273,7 @@ def RunFilter(event=None) -> None:
         └─────────────────┘ """
     result_image = filter(source_image, threshold_x, threshold_y, wrap_around=False, keep_alpha=True)
 
-    # ↓ preview result
+    # ↓ Preview result
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     preview_filtered = PhotoImage(data=preview_data)
 
@@ -269,7 +282,7 @@ def RunFilter(event=None) -> None:
 
     ShowPreview(preview_filtered, 'Result')
 
-    # ↓ binding switch on preview click
+    # ↓ Binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
     zanyato.bind('<space>', SwitchView)  # "Space" key. May be worth binding whole sortir?
     UINormal()
@@ -287,7 +300,7 @@ def zoomIn(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_minus.config(state='normal', cursor='hand2')
     if zoom_factor == 4:  # max zoom 5
         butt_plus.config(state='disabled', cursor='arrow')
@@ -306,7 +319,7 @@ def zoomOut(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
     if zoom_factor == -4:  # min zoom 1/5
         butt_minus.config(state='disabled', cursor='arrow')
@@ -325,7 +338,7 @@ def zoomOne(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
 
@@ -404,18 +417,19 @@ def SaveAsStitch() -> None:
 def valiDig(new_value):
     """Validate Spinbox input and reject non-integer."""
 
-    if new_value.strip() == '':
-        return True
-    try:
-        if new_value.startswith('0'):
+    if new_value == '':
+        return True  # temporarily allow empty string, to be removed in RunFilter
+    if new_value.startswith('0') and int(new_value) != 0:
+        return False  # leading zeroes lead to weird returns
+    else:
+        try:
+            _ = int(new_value)
+            if -1 < _ < 256:
+                return True
+            else:
+                return False
+        except ValueError:
             return False
-        _ = int(new_value)
-        if _ >= 0 and _ < 256:
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
 
 
 def incWheel(event) -> None:
@@ -448,7 +462,7 @@ sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
 
-# ↓ Buttons dictionaries
+# ↓ Buttons properties dictionary
 butt = {
     'font': ('helvetica', 12),
     'cursor': 'hand2',

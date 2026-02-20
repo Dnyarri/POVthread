@@ -58,12 +58,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 #       Result may be copied to clipboard on info string Ctrl+Click.
 # 3.26.8.8    Several bugs fixed, memory requirements reduced due to substantial
 #       onSave() changes. New bugs are highly likely to arise, yet not found yet.
+# 3.26.20.8   Better Spinbox validation.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.18.8'  # Main version № match that of filter module
+__version__ = '3.26.20.8'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -71,8 +72,8 @@ __status__ = 'Production'
 from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
-from time import time, ctime
-from tkinter import BooleanVar, Button, Checkbutton, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, Tk
+from time import ctime, time
+from tkinter import BooleanVar, Button, Checkbutton, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, TclError, Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
@@ -284,7 +285,19 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info, result_image
 
-    # ↓ filtering parameters
+    # ↓ Intercept TclError caused by "" input before .get() cause it.
+    try:
+        _ = ini_threshold_x.get()
+        ini_threshold_x.set(int(_))  # removes "-0", "00" etc.
+    except TclError:
+        ini_threshold_x.set(0)
+    try:
+        _ = ini_threshold_y.get()
+        ini_threshold_y.set(int(_))
+    except TclError:
+        ini_threshold_y.set(0)
+
+    # ↓ Now .get() filtering parameters
     threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
     threshold_y = maxcolors * ini_threshold_y.get() // 255
     wraparound = ini_wraparound.get()
@@ -300,7 +313,7 @@ def RunFilter(event=None) -> None:
     result_image = filter(source_image, threshold_x, threshold_y, wraparound, keep_alpha)
     timing = time() - start
 
-    # ↓ preview result
+    # ↓ Preview result
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     preview_filtered = PhotoImage(data=preview_data)
 
@@ -310,11 +323,11 @@ def RunFilter(event=None) -> None:
 
     ShowPreview(preview_filtered, 'Result')
 
-    # ↓ enabling save
+    # ↓ Enabling save
     menu02.entryconfig('Save', state='normal')
-    # ↓ binding global
+    # ↓ Binding global
     sortir.bind_all('<Control-s>', Save)
-    # ↓ binding switch on preview click
+    # ↓ Binding switch on preview click
     zanyato.bind('<Button-1>', SwitchView)  # left click
     zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
     # ↓ Adding filename, mode and status to window title a-la Photoshop
@@ -335,7 +348,7 @@ def zoomIn(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_minus.config(state='normal', cursor='hand2')
     if zoom_factor == 4:  # max zoom 5
         butt_plus.config(state='disabled', cursor='arrow')
@@ -354,7 +367,7 @@ def zoomOut(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
     if zoom_factor == -4:  # min zoom 1/5
         butt_minus.config(state='disabled', cursor='arrow')
@@ -373,7 +386,7 @@ def zoomOne(event=None) -> None:
     else:
         ShowPreview(preview_filtered, 'Result')
 
-    # ↓ reenabling +/- buttons
+    # ↓ Reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
 
@@ -406,18 +419,18 @@ def onSave() -> None:
     global sourcefilename, X, Y, Z, maxcolors, source_image
     global resultfilename, result_image
 
-    # ↓ saved file becomes new source file
+    # ↓ Saved file becomes new source file
     sourcefilename = resultfilename
     source_image = result_image
     preview_src = preview_filtered
 
-    # ↓ disabling save
+    # ↓ Disabling save
     menu02.entryconfig('Save', state='disabled')
     sortir.unbind_all('<Control-s>')
-    # ↓ binding switch on preview click
+    # ↓ Binding switch on preview click
     zanyato.unbind('<Button-1>')  # left click
     zanyato.unbind('<space>')  # # "Space" key. May be worth binding whole sortir?
-    # ↓ preview source
+    # ↓ Preview source
     ShowPreview(preview_src, 'Source')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
     sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
@@ -450,7 +463,7 @@ def Save(event=None) -> None:
     # ↓ Flagging image as saved, not filtered
     is_saved = True  # to block future repetitive saving
     is_filtered = False
-    # ↓ Now saved file becomes new source file
+    # ↓ Saved file becomes new source file
     onSave()
     UINormal()
 
@@ -463,8 +476,8 @@ def SaveAs(event=None) -> None:
 
     operation = 'Saving'
 
-    # ↓ Adjusting "Save as" formats to be displayed
-    #   according to bitdepth and source extension
+    # ↓ Adjusting "Save as..." formats to be displayed
+    #   according to number of channels and source extension
     src_extension = Path(sourcefilename).suffix.lower()
     if Z == 1:
         if src_extension in ('.pgm', '.pnm'):
@@ -511,7 +524,7 @@ def SaveAs(event=None) -> None:
     # ↓ Flagging image as saved, not filtered, and disabling "Save"
     is_saved = True  # to block future repetitive saving
     is_filtered = False
-    # ↓ Now saved file becomes new source file
+    # ↓ Saved file becomes new source file
     onSave()
     UINormal()
 
@@ -519,18 +532,19 @@ def SaveAs(event=None) -> None:
 def valiDig(new_value):
     """Validate Spinbox input and reject non-integer."""
 
-    if new_value.strip() == '':
-        return True
-    try:
-        if new_value.startswith('0'):
+    if new_value == '':
+        return True  # temporarily allow empty string, to be removed in RunFilter
+    if new_value.startswith('0') and int(new_value) != 0:
+        return False  # leading zeroes lead to weird returns
+    else:
+        try:
+            _ = int(new_value)
+            if -1 < _ < 256:
+                return True
+            else:
+                return False
+        except ValueError:
             return False
-        _ = int(new_value)
-        if _ >= 0 and _ < 256:
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
 
 
 def incWheel(event) -> None:
@@ -566,7 +580,7 @@ sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
 
-# ↓ Buttons dictionaries
+# ↓ Buttons properties dictionary
 butt = {
     'font': ('helvetica', 12),
     'cursor': 'hand2',
@@ -670,12 +684,12 @@ spin02 = Spinbox(
 )
 spin02.grid(row=0, column=5)
 
-# ↓ Wrap around control
+# ↓ "Wrap around" control
 ini_wraparound = BooleanVar(value=False)
 check01 = Checkbutton(frame_top, text='Wrap around', font=('helvetica', 9), variable=ini_wraparound, onvalue=True, offvalue=False, state='disabled', activeforeground=butt['activeforeground'], activebackground=butt['activebackground'])
 check01.grid(row=1, column=1, sticky='ws')
 
-# ↓ Keep alpha control
+# ↓ "Keep alpha" control
 ini_keep_alpha = BooleanVar(value=False)
 check02 = Checkbutton(frame_top, text='Keep alpha', font=('helvetica', 9), variable=ini_keep_alpha, onvalue=True, offvalue=False, state='disabled', activeforeground=butt['activeforeground'], activebackground=butt['activebackground'])
 check02.grid(row=1, column=3, columnspan=3, sticky='ws')
