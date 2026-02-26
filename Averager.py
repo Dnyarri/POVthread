@@ -64,7 +64,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.20.8'  # Main version № match that of filter module
+__version__ = '3.26.23.23'  # Main version № match that of filter module
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -78,7 +78,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
 from pypng.pnglpng import list2png, png2list
-from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
+from pypnm import list2bin, list2pnm, pnm2list
 
 from filter.avgrow import filter
 

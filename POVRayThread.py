@@ -62,7 +62,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
 from pypng.pnglpng import png2list
-from pypnm.pnmlpnm import list2bin, pnm2list
+from pypnm import list2bin, pnm2list
 
 from export import linen, stitch
 from filter.avgrow import filter
