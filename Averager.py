@@ -62,12 +62,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 3.26.20.8     Better Spinbox validation.
 # 3.28.8.8      UI have the potential to become standard.
 # 3.29.26.6     Introducing draggable canvas (somewhat jaggy).
+# 3.31.31.3     Cleanup and beautification.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.30.1.5'  # 'Averager' 1 June 2026, 'avgrow' v. 3
+__version__ = '3.31.31.3'  # 'Averager' 31 July 2026, 'avgrow' v. 3
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -80,10 +81,9 @@ from tkinter import BooleanVar, Button, Canvas, Checkbutton, Frame, IntVar, Labe
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
+from filter.avgrow import filter
 from pypng import list2png, png2list
 from pypnm import list2bin, list2pnm, pnm2list
-
-from filter.avgrow import filter
 
 """ ╔══════════════════════════════════╗
     ║ GUI events and functions thereof ║
@@ -172,9 +172,11 @@ def canvasDrag(event):
 def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
     """Show 'preview_choice' PhotoImage, trying to fit 'canvas' to screen."""
 
-    global zoom_factor, preview
+    global preview
 
+    # ↓ Copying parameter to global, required for Tkinter.
     preview = preview_choice
+    # ↑ BTW `preview is preview_choice` returns `True`
 
     if zoom_factor > 0:
         preview = preview.zoom(zoom_factor + 1)
@@ -208,7 +210,8 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 def SwitchView(event=None) -> None:
     """Switch preview between preview_src and preview_filtered."""
 
-    global zoom_factor, view_src, preview
+    global view_src
+
     view_src = not view_src
     if view_src or is_saved:
         ShowPreview(preview_src, 'Source')
@@ -221,7 +224,7 @@ def GetSource(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, operation, timing
     global preview, preview_src, preview_filtered  # preview and copies of preview
-    global sourcefilename, X, Y, Z, maxcolors, source_image, info
+    global sourcefilename, X, Y, Z, maxcolors, source_image, info  # everything about source
     global result_image  # deep copy of source_image to avoid cumulative filtering
 
     operation = 'Opening'
@@ -346,9 +349,9 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, operation, timing
-    global preview, preview_filtered
-    global X, Y, Z, maxcolors, source_image, info, result_image
+    global view_src, is_filtered, is_saved, info_normal, operation, timing
+    global preview_filtered
+    global result_image
 
     # ↓ Intercept TclError caused by "" input before .get() cause it.
     try:
@@ -406,7 +409,8 @@ def RunFilter(event=None) -> None:
 def zoomIn(event=None) -> None:
     """Zoom preview in."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
     if view_src:
@@ -427,7 +431,8 @@ def zoomIn(event=None) -> None:
 def zoomOut(event=None) -> None:
     """Zoom preview out."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
 
     if view_src:
@@ -448,7 +453,8 @@ def zoomOut(event=None) -> None:
 def zoomOne(event=None) -> None:
     """Zoom 1:1."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = 0
 
     if view_src:
@@ -476,9 +482,8 @@ def zoomWheel(event) -> None:
 def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
 
-    global preview_filtered, preview_src, info_normal
-    global sourcefilename, X, Y, Z, maxcolors, source_image
-    global resultfilename, result_image
+    global preview_src, info_normal
+    global sourcefilename, source_image
 
     # ↓ Saved file becomes new source file
     sourcefilename = resultfilename
@@ -502,8 +507,8 @@ def onSave() -> None:
 def Save(event=None) -> None:
     """Once pressed on Save."""
 
-    global is_filtered, is_saved, info_normal, color_mode_str, operation, timing
-    global sourcefilename, resultfilename
+    global is_filtered, is_saved, operation, timing
+    global resultfilename
 
     operation = 'Saving'
 
@@ -532,8 +537,8 @@ def Save(event=None) -> None:
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
-    global is_saved, is_filtered, info_normal, color_mode_str, operation, timing
-    global sourcefilename, resultfilename
+    global is_saved, is_filtered, operation, timing
+    global resultfilename
 
     operation = 'Saving'
 
@@ -570,7 +575,7 @@ def SaveAs(event=None) -> None:
         initialfile=proposed_name,
     )
     if resultfilename == '':
-        return None
+        return
     UIBusy()
     start = time()
     # ↓ Save format choice
@@ -595,15 +600,10 @@ def valiDig(new_value):
 
     if new_value == '':
         return True  # temporarily allow empty string, to be removed in RunFilter
-    if new_value.startswith('0') and int(new_value) != 0:
-        return False  # leading zeroes lead to weird returns
     else:
         try:
             _ = int(new_value)
-            if -1 < _ < 256:
-                return True
-            else:
-                return False
+            return (-1 < _ < 256) or not (new_value.startswith('0') and int(new_value) != 0)
         except ValueError:
             return False
 

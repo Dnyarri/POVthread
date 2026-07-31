@@ -51,12 +51,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 1.26.8.8      Minimal debugging, some code restructure to simplify further editing.
 # 1.26.20.8     Better Spinbox validation.
 # 1.29.26.6     Introducing draggable canvas to keep UI in line with "Averager".
+# 1.31.31.3     Cleanup and beautification.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.30.1.5'  # 'POV-Ray Thread' 26 May 2026, export modules v. 1
+__version__ = '1.31.31.3'  # 'POV-Ray Thread' 31 July 2026, export modules v. 1
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -69,11 +70,10 @@ from tkinter import Button, Canvas, Frame, IntVar, Label, Menu, Menubutton, Phot
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
-from pypng import png2list
-from pypnm import list2bin, pnm2list
-
 from export import linen, stitch
 from filter.avgrow import filter
+from pypng import png2list
+from pypnm import list2bin, pnm2list
 
 """ ╔══════════════════════════════════╗
     ║ GUI events and functions thereof ║
@@ -157,7 +157,7 @@ def canvasDrag(event):
 def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
     """Show 'preview_choice' PhotoImage, trying to fit 'canvas' to screen."""
 
-    global zoom_factor, preview
+    global preview
 
     preview = preview_choice
 
@@ -193,7 +193,8 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 def SwitchView(event=None) -> None:
     """Switch preview between preview_src and preview_filtered."""
 
-    global zoom_factor, view_src, preview
+    global view_src
+
     view_src = not view_src
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -312,9 +313,9 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src
-    global preview, preview_filtered
-    global X, Y, Z, maxcolors, result_image, info
+    global view_src
+    global preview_filtered
+    global result_image
 
     # ↓ Intercept TclError caused by "" input before .get() cause it.
     try:
@@ -359,7 +360,8 @@ def RunFilter(event=None) -> None:
 def zoomIn(event=None) -> None:
     """Zoom preview in."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
     if view_src:
@@ -380,7 +382,8 @@ def zoomIn(event=None) -> None:
 def zoomOut(event=None) -> None:
     """Zoom preview out."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
 
     if view_src:
@@ -401,7 +404,8 @@ def zoomOut(event=None) -> None:
 def zoomOne(event=None) -> None:
     """Zoom 1:1."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = 0
 
     if view_src:
@@ -429,7 +433,6 @@ def zoomWheel(event) -> None:
 def SaveAsLinen() -> None:
     """Once pressed on Linen."""
 
-    global sourcefilename
     savefilename = asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[
@@ -454,7 +457,6 @@ def SaveAsLinen() -> None:
 def SaveAsStitch() -> None:
     """Once pressed on Stitch."""
 
-    global sourcefilename
     savefilename = asksaveasfilename(
         title='Save POV-Ray file',
         filetypes=[
@@ -481,15 +483,10 @@ def valiDig(new_value):
 
     if new_value == '':
         return True  # temporarily allow empty string, to be removed in RunFilter
-    if new_value.startswith('0') and int(new_value) != 0:
-        return False  # leading zeroes lead to weird returns
     else:
         try:
             _ = int(new_value)
-            if -1 < _ < 256:
-                return True
-            else:
-                return False
+            return (-1 < _ < 256) or not (new_value.startswith('0') and int(new_value) != 0)
         except ValueError:
             return False
 

@@ -88,13 +88,12 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.26.20.8'
+__version__ = '3.31.31.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
-from operator import add, floordiv
-# ↑ Operator in `map` seem to work ca. 7% faster than lambda.
+from operator import add, floordiv  # Operator in `map` seem to work ca. 7% faster than lambda.
 
 
 def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
@@ -105,7 +104,7 @@ def create_image(X: int, Y: int, Z: int) -> list[list[list[int]]]:
     #   NOTE: Can not be replaced with "[[[0] * Z] * X] * Y"!
 
 
-def filter(source_image: list[list[list[int]]], threshold_x: int | float, threshold_y: int | float, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
+def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: int, wrap_around: bool = False, keep_alpha: bool = False) -> list[list[list[int]]]:
     """Average image pixels in a row until
     **``abs(average - current) > threshold``**
     criterion met, then repeat in a column.
@@ -143,19 +142,19 @@ def filter(source_image: list[list[list[int]]], threshold_x: int | float, thresh
         │ kept here just for reference and reuse.  │
         ╰──────────────────────────────────────────╯ """
 
-    def _cx_repeat(x: int | float) -> int:
+    def _cx_repeat(x: int) -> int:
         """x for repeat edge"""
         return min((X - 1), max(0, int(x)))  # x repeat edge
 
-    def _cx_wrap(x: int | float) -> int:
+    def _cx_wrap(x: int) -> int:
         """x for wrap around"""
         return int(x) % X  # x wrap around
 
-    def _cy_repeat(y: int | float) -> int:
+    def _cy_repeat(y: int) -> int:
         """y for repeat edge"""
         return min((Y - 1), max(0, int(y)))  # y repeat edge
 
-    def _cy_wrap(y: int | float) -> int:
+    def _cy_wrap(y: int) -> int:
         """y for wrap around"""
         return int(y) % Y  # y wrap around
 
