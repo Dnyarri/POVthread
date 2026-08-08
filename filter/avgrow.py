@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Averaging image pixels in a row until reaching
 ``abs(average - current) > threshold``, then repeating in a column.
 
@@ -38,9 +40,10 @@ where:
     must be performed at host end.
 
 .. warning:: Some programs completely destroy L or RGB data upon saving
-    LA or RGBA image pixels with A=0 (fully transparent). This may lead to
-    unexpected and unpredictable results of filtering. This potential problem
-    is completely out of responsibility of current filter developer.
+    LA or RGBA image pixels with A=0 (fully transparent) as PNG.
+    This may lead to unexpected and unpredictable results of filtering.
+    This potential problem is completely out of responsibility scope
+    of current filter developer.
 
 -----
 Main site: `The Toad's Slimy Mudhole`_
@@ -88,7 +91,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.31.31.3'
+__version__ = '3.32.8.24'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -162,9 +165,12 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
     cx = _cx_wrap
     cy = _cy_wrap
 
-    if wrap_around:  # Threshold may never be met, yet loop must be stopped somewhere.
-        x_overhead = X  # Smaller values sometimes do not work, depending on image;
-        y_overhead = Y  # bigger values make no sense.
+    # ↓ Threshold criteria may never be met, yet loop must be stopped somewhere.
+    #   Therefore some maximal run length overhead defined be must.
+    #   Small values sometimes fail (i.e. filter prematurely react
+    #   on short smooth sequences), while values bigger than image size make no sense.
+    if wrap_around:
+        x_overhead, y_overhead = X, Y
     else:
         x_overhead = y_overhead = 0
 
@@ -248,3 +254,7 @@ def filter(source_image: list[list[list[int]]], threshold_x: int, threshold_y: i
 
 
 # ↑ filter finished
+
+# ↓ Dummy stub for standalone execution attempt
+if __name__ == '__main__':
+    print('Module to be imported, not run as standalone.')

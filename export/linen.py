@@ -4,9 +4,9 @@
 ======================
 POV-Ray Thread: Linen
 ======================
---------------------------------------------------------
-Converting image to canvas simulation in POV-Ray format.
---------------------------------------------------------
+-------------------------------------------------------
+Converting image to canvas simulation in POV-Ray format
+-------------------------------------------------------
 
 **linen** export module present function for converting images
 and image-like nested lists to an assembly of 3D objects,
@@ -57,7 +57,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2007-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.26.6.18'
+__version__ = '1.32.8.24'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -76,15 +76,14 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
 
     """
 
-    Y = len(source_image)
-    X = len(source_image[0])
-    Z = len(source_image[0][0])
+    # ↓ Determining image sizes.
+    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
 
     """ ╔═══════════════╗
         ║ src functions ║
         ╚═══════════════╝ """
 
-    def _src(x: int | float, y: int | float, z: int) -> int:
+    def _src(x: float, y: float, z: int) -> int:
         """Analog of src from FilterMeister, force repeat edge instead of out of range.
         Returns int channel value z for pixel x, y."""
 
@@ -99,7 +98,7 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
         ║ Writing POV file ║
         ╚══════════════════╝ """
 
-    resultfile = open(resultfilename, 'w')
+    resultfile = open(resultfilename, 'w')  # noqa: SIM115
 
     """ ┌────────────┐
         │ POV header │
@@ -124,7 +123,7 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
         │ Globals and includes │
         └──────────────────────┘ """
     resultfile.write(
-        '\n'.join(
+        '\n'.join(  # noqa: FLY002
             [
                 '#version 3.7;\n',
                 'global_settings{',
@@ -301,7 +300,7 @@ def linen(source_image: list[list[list[int]]], maxcolors: int, resultfilename: s
 
     # Transform object to fit 1, 1, 1 cube at 0, 0, 0 coordinates
     resultfile.write(
-        '\n'.join(
+        '\n'.join(  # noqa: FLY002
             [
                 '\n  // Object transforms to fit 1, 1, 1 cube at 0, 0, 0 coordinates',
                 '  translate <0.5, 0.5, 0> + <-0.5 * X, -0.5 * Y, 0>',  # centering at scene zero

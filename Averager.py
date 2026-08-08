@@ -68,7 +68,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.31.31.3'  # 'Averager' 31 July 2026, 'avgrow' v. 3
+__version__ = '3.32.8.24'  # 'Averager' 8 Aug 2026, 'avgrow' v. 3
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -149,8 +149,10 @@ def UIFit() -> None:
     """Readopting 'sortir.minsize' to fit the screen."""
 
     sortir.update()
-    fit_width = min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10)
-    fit_height = min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10)
+    fit_width, fit_height = (
+        min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10),
+        min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10),
+    )
     sortir.minsize(fit_width, fit_height)
 
 
@@ -188,11 +190,13 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
         label_zoom['text'] = f'{caption} 1:1'
 
     # ↓ Sizes of preview to fit the screen
-    preview_width = min(preview.width(), 8 * sortir.winfo_screenwidth() // 10)
-    preview_height = min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height())
-
     zanyato.config(
         image=preview,
+        relief='flat',  # Other reliefs seem to interfere with image
+    )
+    preview_width, preview_height = (
+        min(preview.width(), 8 * sortir.winfo_screenwidth() // 10),
+        min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height()),
     )
     canvas.config(
         width=preview_width,
@@ -252,12 +256,12 @@ def GetSource(event=None) -> None:
     UIBusy()
     start = time()
     if Path(sourcefilename).suffix.lower() == '.png':
-        # ↓ Reading PNG image as list
-        X, Y, Z, maxcolors, source_image, info = png2list(sourcefilename)
+        # ↓ Reading PNG image as list. Unpredictably, tuplevel='image' makes filter faster.
+        X, Y, Z, maxcolors, source_image, info = png2list(sourcefilename, tuplevel='image')
 
     elif Path(sourcefilename).suffix.lower() in ('.ppm', '.pgm', '.pbm', '.pnm'):
-        # ↓ Reading PNM image as list
-        X, Y, Z, maxcolors, source_image = pnm2list(sourcefilename)
+        # ↓ Reading PNM image as list. Unpredictably, tuplevel='image' makes filter faster.
+        X, Y, Z, maxcolors, source_image = pnm2list(sourcefilename, tuplevel='image')
         # ↓ Creating dummy info required to correctly Save As PNG later.
         #   Fixing color mode, the rest is fixed with pnglpng v. 25.01.07.
         info = {'bitdepth': 16} if maxcolors > 255 else {'bitdepth': 8}
@@ -547,20 +551,32 @@ def SaveAs(event=None) -> None:
     src_extension = Path(sourcefilename).suffix.lower()
     if Z == 1:
         if src_extension in ('.pgm', '.pnm'):
-            format_list = [('Portable grey map', '.pgm'), ('Portable network graphics', '.png')]
+            format_list = [
+                ('Portable grey map', '.pgm'),
+                ('Portable network graphics', '.png'),
+            ]
             proposed_name = Path(sourcefilename).stem + '.pgm'
         else:
-            format_list = [('Portable network graphics', '.png'), ('Portable grey map', '.pgm')]
+            format_list = [
+                ('Portable network graphics', '.png'),
+                ('Portable grey map', '.pgm'),
+            ]
             proposed_name = Path(sourcefilename).stem + '.png'
     elif Z == 2:
         format_list = [('Portable network graphics', '.png')]
         proposed_name = Path(sourcefilename).stem + '.png'
     elif Z == 3:
         if src_extension in ('.ppm', '.pnm'):
-            format_list = [('Portable pixel map', '.ppm'), ('Portable network graphics', '.png')]
+            format_list = [
+                ('Portable pixel map', '.ppm'),
+                ('Portable network graphics', '.png'),
+            ]
             proposed_name = Path(sourcefilename).stem + '.ppm'
         else:
-            format_list = [('Portable network graphics', '.png'), ('Portable pixel map', '.ppm')]
+            format_list = [
+                ('Portable network graphics', '.png'),
+                ('Portable pixel map', '.ppm'),
+            ]
             proposed_name = Path(sourcefilename).stem + '.png'
     else:
         format_list = [('Portable network graphics', '.png')]
@@ -797,10 +813,10 @@ frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
     frame_preview,
-    borderwidth=1,  # canvas have two borders, in general combination
+    borderwidth=1,  # canvas with label have two backgrounds, combination
     highlightthickness=1,  # of both gives contrast with any image
-    # background='red',  # internal border
-    # highlightbackground='green',  # external border
+    # background='red',  # forms internal border
+    # highlightbackground='green',  # forms external border
     # highlightcolor='yellow',  # external border with opened image
 )
 canvas.pack()
@@ -844,7 +860,8 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
-transparent_controls = (spin01, spin02)  # To be cut off global evens
+# ↓ Spinboxes be cut off global evens and bound to spinbox events
+transparent_controls = (spin01, spin02)
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │

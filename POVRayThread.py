@@ -4,9 +4,9 @@
 ==============
 POV-Ray Thread
 ==============
--------------------------------------------------------------------------
-Converting image to canvas and cross stitch simulation in POV-Ray format.
--------------------------------------------------------------------------
+------------------------------------------------------------------------
+Converting image to canvas and cross stitch simulation in POV-Ray format
+------------------------------------------------------------------------
 
 Input: PNG, PPM, PGM.
 
@@ -57,7 +57,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.31.31.3'  # 'POV-Ray Thread' 31 July 2026, export modules v. 1
+__version__ = '1.32.8.24'  # 'POV-Ray Thread' 8 Aug 2026, export modules v. 1
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -134,8 +134,10 @@ def UIFit() -> None:
     """Readopting 'sortir.minsize' to fit the screen."""
 
     sortir.update()
-    fit_width = min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10)
-    fit_height = min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10)
+    fit_width, fit_height = (
+        min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10),
+        min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10),
+    )
     sortir.minsize(fit_width, fit_height)
 
 
@@ -171,11 +173,10 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
         label_zoom['text'] = f'{caption} 1:1'
 
     # ↓ Sizes of preview to fit the screen
-    preview_width = min(preview.width(), 8 * sortir.winfo_screenwidth() // 10)
-    preview_height = min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height())
-
-    zanyato.config(
-        image=preview,
+    zanyato.config(image=preview, relief='flat')
+    preview_width, preview_height = (
+        min(preview.width(), 8 * sortir.winfo_screenwidth() // 10),
+        min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height()),
     )
     canvas.config(
         width=preview_width,
@@ -646,8 +647,8 @@ frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
     frame_preview,
-    borderwidth=1,  # canvas have two borders, in general combination
-    highlightthickness=1,  # of both gives contrast with any image
+    borderwidth=1,
+    highlightthickness=1,
     # background='red',  # internal border
     # highlightbackground='green',  # external border
     # highlightcolor='yellow',  # external border with opened image
@@ -693,7 +694,8 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
-transparent_controls = (spin01, spin02)  # To be cut off global evens
+# ↓ Spinboxes be cut off global evens and bound to spinbox events
+transparent_controls = (spin01, spin02)
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │
