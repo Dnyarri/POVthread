@@ -57,7 +57,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.32.8.24'  # 'POV-Ray Thread' 8 Aug 2026, export modules v. 1
+__version__ = '1.32.19.10'  # 'POV-Ray Thread' 19 Aug 2026, export modules v. 1
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -210,6 +210,18 @@ def GetSource(event=None) -> None:
     global preview, preview_src, preview_filtered  # preview and copies of preview
     global sourcefilename, X, Y, Z, maxcolors, source_image, info
     global result_image  # deep copy of source_image to avoid cumulative filtering
+
+    # ↓ Intercept TclError caused by "" input before .get() cause it.
+    try:
+        _ = ini_threshold_x.get()
+        ini_threshold_x.set(int(_))  # removes "-0", "00" etc.
+    except TclError:
+        ini_threshold_x.set(0)
+    try:
+        _ = ini_threshold_y.get()
+        ini_threshold_y.set(int(_))
+    except TclError:
+        ini_threshold_y.set(0)
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     sourcefilename = askopenfilename(
