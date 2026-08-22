@@ -57,15 +57,15 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.32.19.10'  # 'POV-Ray Thread' 19 Aug 2026, export modules v. 1
+__version__ = '1.32.22.8'  # 'POV-Ray Thread' 22 Aug 2026, export modules v. 1
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
 
 from copy import deepcopy
 from pathlib import Path
-from random import randbytes  # Used for random icon only
-from time import ctime  # Used to show file info only
+from random import randbytes
+from time import ctime
 from tkinter import Button, Canvas, Frame, IntVar, Label, Menu, Menubutton, PhotoImage, Spinbox, TclError, Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
@@ -101,6 +101,16 @@ def ShowInfo(event=None) -> None:
         title='Image information',
         message=f'File properties:\nLocation: {sourcefilename}\nSize: {file_size_str}\nLast modified: {ctime(Path(sourcefilename).stat().st_mtime)}',
         detail=f'Image properties, as represented internally:\nWidth: {X} px\nHeight: {Y} px\nChannels: {Z} channel{"s" if Z > 1 else ""}\nColor depth: {maxcolors + 1} gradations/channel',
+    )
+
+
+def ShowHelp(event=None) -> None:
+    """Show some help info."""
+
+    showinfo(
+        title=f'{product_name} quick help',
+        message=f'{product_name} {__version__} is a program for converting 2D image into textile simulation, made of 3D objects.\nMain GUI functions are listed below:',
+        detail=help_str,
     )
 
 
@@ -143,11 +153,13 @@ def UIFit() -> None:
 
 def canvasCoord(event):
     """Marking 'canvas' click pont for further dragging."""
+
     canvas.scan_mark(event.x, event.y)
 
 
 def canvasDrag(event):
     """Dragging 'canvas' Canvas."""
+
     canvas.scan_dragto(
         event.x,
         event.y,
@@ -264,16 +276,17 @@ def GetSource(event=None) -> None:
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     # ↓ Now generating preview from "preview_data" bytes using Tkinter
     preview = PhotoImage(data=preview_data)
-    # ↓ Finally the show part
-    ShowPreview(preview, 'Source')
 
     # ↓ Creating copy of source preview for further
     #   fast switch between source and result.
     preview_src = preview_filtered = preview
-    # ↓ Attempt to zoom to fit. Singe zoomOut() must fit for a reasonable image size.
-    #   GUI X extra = 8 px, GUI Y extra = 150 px
-    if X + 16 > sortir.winfo_screenwidth() or Y + 152 > sortir.winfo_screenheight():
-        zoomOut()
+
+    # ↓ Calculate zoom factor for "Zoom to fit".
+    if preview.width() > sortir.winfo_screenwidth() or (128 + preview.height() + frame_top.winfo_reqheight()) > sortir.winfo_screenheight():
+        zoom_factor = max(-max(preview.width() // sortir.winfo_screenwidth(), (128 + preview.height() + frame_top.winfo_reqheight() + frame_zoom.winfo_reqheight() + info_string.winfo_reqheight()) // sortir.winfo_screenheight()), minizoom)
+
+    # ↓ Finally the show part
+    ShowPreview(preview, 'Source')
 
     # ↓ Binding preview mouse drag
     zanyato.bind('<Motion>', canvasCoord)
@@ -375,7 +388,7 @@ def zoomIn(event=None) -> None:
 
     global zoom_factor
 
-    zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
+    zoom_factor = min(zoom_factor + 1, maxizoom)
 
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -384,7 +397,7 @@ def zoomIn(event=None) -> None:
 
     # ↓ Reenabling +/- buttons
     butt_minus.config(state='normal', cursor='hand2')
-    if zoom_factor == 4:  # max zoom 5
+    if zoom_factor == maxizoom:
         butt_plus.config(state='disabled', cursor='arrow')
     else:
         butt_plus.config(state='normal', cursor='hand2')
@@ -397,7 +410,7 @@ def zoomOut(event=None) -> None:
 
     global zoom_factor
 
-    zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
+    zoom_factor = max(zoom_factor - 1, minizoom)
 
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -406,7 +419,7 @@ def zoomOut(event=None) -> None:
 
     # ↓ Reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
-    if zoom_factor == -4:  # min zoom 1/5
+    if zoom_factor == minizoom:
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')
@@ -527,6 +540,22 @@ sourcefilename = ''
 zoom_factor = 0
 view_src = True
 product_name = 'POV-Ray Thread'
+minizoom, maxizoom = (-4, 4)  # Zoom from 1:5 to 5:1
+
+some_help = (
+    'Preview area:',
+    '  <Double click> to open image,',
+    '  <Right click> or <Alt+F> for "File..." menu.',
+    'With image opened:',
+    '  <Ctrl+Click> to zoom in,',
+    '  <Alt+Click> to zoom out,',
+    '  <Ctrl+1> to zoom 1:1,',
+    '  <Mouse wheel> to zoom in/out,',
+    '  <Click+drag> to pan preview,',
+    '  <Enter> to execute filter,',
+    '  <Click> or <Space> to switch source/result view.',
+)
+help_str = '\n'.join(some_help)
 
 sortir = Tk()
 sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
@@ -584,6 +613,8 @@ menu02.add_command(label='Export Linen...', state='disabled', command=SaveAsLine
 menu02.add_command(label='Export Stitch...', state='disabled', command=SaveAsStitch)
 menu02.add_separator()
 menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
+menu02.add_separator()
+menu02.add_command(label='Help...', accelerator='F1', state='normal', command=ShowHelp)
 menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
@@ -669,7 +700,7 @@ canvas.pack()
 
 zanyato = Label(
     canvas,
-    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Click+drag to drag preview,\n  Enter to filter.\nWhen filtered, click or Space bar\nto switch source/result.',
+    text=help_str.replace('<', '').replace('>', ''),
     font=('helvetica', 12),
     justify='left',
     padx=24,
@@ -721,6 +752,7 @@ frame_preview.bind('<Double-Button-1>', GetSource)
 # ↓ Whole sortir binding menu, "Open..." and "Exit"
 sortir.bind_all('<Button-3>', ShowMenu)
 sortir.bind_all('<Alt-f>', ShowMenu)
+sortir.bind_all('<F1>', ShowHelp)
 sortir.bind_all('<Control-o>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
 sortir.bind_all('<Control-Q>', DisMiss)
