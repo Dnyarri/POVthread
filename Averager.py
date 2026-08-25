@@ -69,7 +69,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.32.22.8'  # 'Averager' 22 Aug 2026, 'avgrow' v. 3
+__version__ = '3.32.25.11'  # 'Averager' 25 Aug 2026, 'avgrow' v. 3
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -669,14 +669,31 @@ def incWheel(event) -> None:
     ╚═══════════╝ """
 # ↓ Initializing
 sourcefilename = ''
-zoom_factor = timing = 0
+"""Name of file to be opened."""
+
+zoom_factor = 0
+"""Current zoom. Midpoint value 0 correspond to 1:1 zoom."""
+
+timing = 0
+"""Execution time for most recent task."""
+
 view_src = True
+"""Whether source image should be shown rather than the result."""
+
 is_filtered = False
+"""Whether image filtering was performed."""
+
 product_name = 'Averager'
 operation = 'Awaiting orders'
-minizoom, maxizoom = (-4, 4)  # Zoom from 1:5 to 5:1. Mnemonic: "mini" means "image look small".
+"""Name of most recent operation timing was calculated for."""
 
-some_help = (  # Help to be used for both main window and F1
+maxizoom = 4
+"""Maximal zoom:1 for ZoomIn(). Mnemonic: "maxi" means "image look big"."""
+
+minizoom = -4
+"""Maximal 1:zoom for ZoomOut(). Mnemonic: "mini" means "image look small"."""
+
+some_help = (
     'Preview area:',
     '  <Double click> to open image,',
     '  <Right click> or <Alt+F> for "File..." menu.',
@@ -689,9 +706,13 @@ some_help = (  # Help to be used for both main window and F1
     '  <Enter> to execute filter,',
     '  <Click> or <Space> to switch source/result view.',
 )
+"""Help list(str) to be used for both main window and F1."""
+
 help_str = '\n'.join(some_help)
+"""Help str to be used for both main window and F1."""
 
 sortir = Tk()
+"""Main dialog window."""
 sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
 sortir.title(product_name)
 
@@ -709,20 +730,31 @@ butt = {
     'activeforeground': 'dark blue',
     'activebackground': '#E5F1FB',
 }
+"""Buttons properties dictionary."""
 
 color_mode_str = ' '
+"""Image color mode info."""
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'Adaptive Average {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 # ↓ Info string
-info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
+info_string = Label(
+    sortir,
+    text=info_normal['txt'],
+    font=('courier', 7),
+    foreground=info_normal['fg'],
+    background=info_normal['bg'],
+    relief='groove',
+)
+"""Info text label below main image, regularly updated."""
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
+"""Frame containing controls."""
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 
 # ↓ File menu
@@ -740,9 +772,11 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
+"""File menu button."""
 butt_file.grid(row=0, column=0, rowspan=2, sticky='ns', padx=(0, 10), pady=0)
 
-menu02 = Menu(butt_file, tearoff=False)  # "File" menu
+menu02 = Menu(butt_file, tearoff=False)
+"""File menu."""
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
 menu02.add_separator()
 menu02.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
@@ -767,6 +801,7 @@ info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
 info01.grid(row=0, column=2)
 
 ini_threshold_x = IntVar(value=16)
+"""Horizontal filtering threshold value."""
 spin01 = Spinbox(
     frame_top,
     from_=0,
@@ -779,6 +814,7 @@ spin01 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
+"""Horizontal filtering threshold control."""
 spin01.grid(row=0, column=3)
 
 # ↓ Y-pass threshold control
@@ -786,6 +822,7 @@ info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
 info02.grid(row=0, column=4)
 
 ini_threshold_y = IntVar(value=8)
+"""Vertical filtering threshold value."""
 spin02 = Spinbox(
     frame_top,
     from_=0,
@@ -798,10 +835,12 @@ spin02 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
+"""Vertical filtering threshold control."""
 spin02.grid(row=0, column=5)
 
 # ↓ "Wrap around" control
 ini_wraparound = BooleanVar(value=False)
+"""Whether to process image wrap-around."""
 check01 = Checkbutton(
     frame_top,
     text='Wrap around',
@@ -813,10 +852,12 @@ check01 = Checkbutton(
     activeforeground=butt['activeforeground'],
     activebackground=butt['activebackground'],
 )
+"""Control whether to process image wrap-around."""
 check01.grid(row=1, column=1, sticky='ws')
 
 # ↓ "Keep alpha" control
 ini_keep_alpha = BooleanVar(value=False)
+"""Whether to copy source image alpha to result."""
 check02 = Checkbutton(
     frame_top,
     text='Keep alpha',
@@ -828,6 +869,7 @@ check02 = Checkbutton(
     activeforeground=butt['activeforeground'],
     activebackground=butt['activebackground'],
 )
+"""Control whether to copy source image alpha to result."""
 check02.grid(row=1, column=3, columnspan=3, sticky='ws')
 
 # ↓ Filter start
@@ -846,12 +888,14 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
+"""Filter image button."""
 butt_filter.grid(row=0, column=6, rowspan=2, sticky='nsew', padx=(10, 0), pady=0)
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
     └─────────────────────────────-┘ """
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
+"""Frame containing main label (image preview) and zoom control subframe."""
 frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
@@ -862,6 +906,7 @@ canvas = Canvas(
     # highlightbackground='green',  # forms external border
     # highlightcolor='yellow',  # external border with opened image
 )
+"""Canvas containing preview."""
 canvas.pack()
 
 zanyato = Label(
@@ -875,6 +920,7 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
+"""Main label containing canvas containing preview."""
 zanyato.pack(side='top')
 
 zanyato_ = canvas.create_window(
@@ -885,6 +931,7 @@ zanyato_ = canvas.create_window(
     height=zanyato.winfo_reqheight(),
     anchor='nw',
 )
+"""Create/config canvas in main label."""
 canvas.config(
     width=zanyato.winfo_reqwidth(),
     height=zanyato.winfo_reqheight(),
@@ -892,6 +939,7 @@ canvas.config(
 )
 
 frame_zoom = Frame(frame_preview, borderwidth=2, relief='groove')
+"""Zoom control subframe."""
 frame_zoom.pack(side='bottom')
 
 butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomIn)
@@ -905,6 +953,7 @@ label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
 # ↓ Spinboxes be cut off global evens and bound to spinbox events
 transparent_controls = (spin01, spin02)
+"""Controls to be uncontrolled by global evens."""
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │
