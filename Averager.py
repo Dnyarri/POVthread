@@ -64,12 +64,13 @@ POV-Ray Thread Git repositories: main `@Github`_ and mirror `@Gitflic`_
 # 3.29.26.6     Introducing draggable canvas (somewhat jaggy).
 # 3.31.31.3     Cleanup and beautification.
 # 3.32.22.8     With more UI improvements "Averager" becomes a GUI standard ;-)
+# 3.33.1.7      Further GUI code generalization; var docstrings added.
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '3.32.25.11'  # 'Averager' 25 Aug 2026, 'avgrow' v. 3
+__version__ = '3.33.1.7'  # 'Averager' 1 Sep 2026, 'avgrow' v. 3
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -100,7 +101,7 @@ def DisMiss(event=None) -> None:
 def ShowMenu(event) -> None:
     """Pop menu up (or sort of drop it down)."""
 
-    menu02.post(event.x_root, event.y_root)
+    menu_file.post(event.x_root, event.y_root)
 
 
 def ShowInfo(event=None) -> None:
@@ -120,7 +121,7 @@ def ShowHelp(event=None) -> None:
 
     showinfo(
         title=f'{product_name} quick help',
-        message=f'{product_name} {__version__} is a program for adaptive image pixels averaging in a row, then in a column.\nMain GUI functions are listed below:',
+        message=f'{product_name} {__version__} is a program averaging image pixels in a row until threshold of maximal difference between source and average hit, then repeating the same in a column.\nMain GUI functions are listed below:',
         detail=help_str,
     )
 
@@ -137,8 +138,8 @@ def UINormal() -> None:
             widget['cursor'] = 'arrow'
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
     if Z == 1 or Z == 3:  # "Keep alpha" checkbox
-        check02['state'] = 'disabled'
-        check02['cursor'] = 'arrow'
+        check_keep_alpha['state'] = 'disabled'
+        check_keep_alpha['cursor'] = 'arrow'
     sortir['cursor'] = ''
     sortir.update()
 
@@ -149,7 +150,7 @@ def UIBusy() -> None:
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'Checkbutton'):
             widget['state'] = 'disabled'
-        if widget.winfo_class() in ('Button', 'Label'):
+        if widget.winfo_class() in ('Label', 'Button', 'Checkbutton'):
             widget['cursor'] = 'wait'
     info_string.config(text=info_busy['txt'], foreground=info_busy['fg'], background=info_busy['bg'])
     sortir['cursor'] = 'wait'
@@ -336,9 +337,9 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<Return>', RunFilter)
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
-    menu02.entryconfig('Image Info...', state='normal')
+    menu_file.entryconfig('Image Info...', state='normal')
     # ↓ Enabling 'Save as...'
-    menu02.entryconfig('Save as...', state='normal')
+    menu_file.entryconfig('Save as...', state='normal')
     sortir.bind_all('<Control-Shift-S>', SaveAs)
     # ↓ Enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
@@ -360,15 +361,15 @@ def GetSource(event=None) -> None:
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
     # ↓ Spinbox mouseovers
-    spin01.bind('<Enter>', lambda event=None: spin01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
-    spin01.bind('<Leave>', lambda event=None: spin01.config(foreground=butt['foreground'], background='white'))
-    spin02.bind('<Enter>', lambda event=None: spin02.config(foreground=butt['activeforeground'], background=butt['activebackground']))
-    spin02.bind('<Leave>', lambda event=None: spin02.config(foreground=butt['foreground'], background='white'))
+    spin_x.bind('<Enter>', lambda event=None: spin_x.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    spin_x.bind('<Leave>', lambda event=None: spin_x.config(foreground=butt['foreground'], background='white'))
+    spin_y.bind('<Enter>', lambda event=None: spin_y.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    spin_y.bind('<Leave>', lambda event=None: spin_y.config(foreground=butt['foreground'], background='white'))
     # ↓ Spinbox mouse input
-    spin01.unbind('<MouseWheel>')
-    spin01.bind('<MouseWheel>', incWheel)
-    spin02.unbind('<MouseWheel>')
-    spin02.bind('<MouseWheel>', incWheel)
+    spin_x.unbind('<MouseWheel>')
+    spin_x.bind('<MouseWheel>', incWheel)
+    spin_y.unbind('<MouseWheel>')
+    spin_y.bind('<MouseWheel>', incWheel)
     UINormal()
     UIFit()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
@@ -421,7 +422,7 @@ def RunFilter(event=None) -> None:
     ShowPreview(preview_filtered, 'Result')
 
     # ↓ Enabling save
-    menu02.entryconfig('Save', state='normal')
+    menu_file.entryconfig('Save', state='normal')
     # ↓ Binding global
     sortir.bind_all('<Control-s>', Save)
     # ↓ Binding switch on preview click
@@ -520,7 +521,7 @@ def onSave() -> None:
     preview_src = preview_filtered
 
     # ↓ Disabling save
-    menu02.entryconfig('Save', state='disabled')
+    menu_file.entryconfig('Save', state='disabled')
     sortir.unbind_all('<Control-s>')
     # ↓ Binding switch on preview click
     zanyato.unbind('<Button-1>')  # left click
@@ -652,30 +653,29 @@ def valiDig(new_value):
 def incWheel(event) -> None:
     """Increment or decrement spinboxes by mouse wheel."""
 
-    if event.widget == spin01:
+    if event.widget == spin_x:
         if event.delta < 0:
-            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - 1)))
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - threshold_increment)))
         if event.delta > 0:
-            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + 1)))
-    if event.widget == spin02:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + threshold_increment)))
+    if event.widget == spin_y:
         if event.delta < 0:
-            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - 1)))
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - threshold_increment)))
         if event.delta > 0:
-            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + 1)))
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + threshold_increment)))
 
 
-""" ╔═══════════╗
-    ║ Main body ║
-    ╚═══════════╝ """
-# ↓ Initializing
+""" ╒══════════════╕
+    │ Initializing │
+    ╰──────────────╯ """
+product_name = 'Averager'
+"""Program name."""
+
 sourcefilename = ''
 """Name of file to be opened."""
 
 zoom_factor = 0
 """Current zoom. Midpoint value 0 correspond to 1:1 zoom."""
-
-timing = 0
-"""Execution time for most recent task."""
 
 view_src = True
 """Whether source image should be shown rather than the result."""
@@ -683,15 +683,23 @@ view_src = True
 is_filtered = False
 """Whether image filtering was performed."""
 
-product_name = 'Averager'
+is_saved = False
+"""Whether image was saved after filtering was performed."""
+
 operation = 'Awaiting orders'
 """Name of most recent operation timing was calculated for."""
+
+timing = 0
+"""Execution time for most recent operation."""
 
 maxizoom = 4
 """Maximal zoom:1 for ZoomIn(). Mnemonic: "maxi" means "image look big"."""
 
 minizoom = -4
 """Maximal 1:zoom for ZoomOut(). Mnemonic: "mini" means "image look small"."""
+
+threshold_increment = 1
+"""Threshold increment for incWheel() and spinboxes."""
 
 some_help = (
     'Preview area:',
@@ -711,6 +719,9 @@ some_help = (
 help_str = '\n'.join(some_help)
 """Help str to be used for both main window and F1."""
 
+""" ╔═══════════╗
+    ║ Main body ║
+    ╚═══════════╝ """
 sortir = Tk()
 """Main dialog window."""
 sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
@@ -775,38 +786,38 @@ butt_file = Menubutton(
 """File menu button."""
 butt_file.grid(row=0, column=0, rowspan=2, sticky='ns', padx=(0, 10), pady=0)
 
-menu02 = Menu(butt_file, tearoff=False)
+menu_file = Menu(butt_file, tearoff=False)
 """File menu."""
-menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
-menu02.add_separator()
-menu02.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
-menu02.add_command(label='Save as...', state='disabled', command=SaveAs, accelerator='Ctrl+Shift+S')
-menu02.add_separator()
-menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
-menu02.add_separator()
-menu02.add_command(label='Help...', accelerator='F1', state='normal', command=ShowHelp)
-menu02.add_separator()
-menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
+menu_file.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
+menu_file.add_separator()
+menu_file.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
+menu_file.add_command(label='Save as...', state='disabled', command=SaveAs, accelerator='Ctrl+Shift+S')
+menu_file.add_separator()
+menu_file.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
+menu_file.add_separator()
+menu_file.add_command(label='Help...', accelerator='F1', state='normal', command=ShowHelp)
+menu_file.add_separator()
+menu_file.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
-butt_file['menu'] = menu02
+butt_file['menu'] = menu_file  # Attach menu to menu button
 
 butt_file.focus_set()  # Setting focus to "File..."
 
 # ↓ Filter section begins
-info00 = Label(frame_top, text='Filtering threshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
-info00.grid(row=0, column=1)
+info_threshold = Label(frame_top, text='Filtering threshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
+info_threshold.grid(row=0, column=1)
 
 # ↓ X-pass threshold control
-info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
-info01.grid(row=0, column=2)
+info_threshold_x = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
+info_threshold_x.grid(row=0, column=2)
 
 ini_threshold_x = IntVar(value=16)
 """Horizontal filtering threshold value."""
-spin01 = Spinbox(
+spin_x = Spinbox(
     frame_top,
     from_=0,
     to=255,
-    increment=1,
+    increment=threshold_increment,
     textvariable=ini_threshold_x,
     state='disabled',
     width=3,
@@ -815,19 +826,19 @@ spin01 = Spinbox(
     validatecommand=(validate_entry, '%P'),
 )
 """Horizontal filtering threshold control."""
-spin01.grid(row=0, column=3)
+spin_x.grid(row=0, column=3)
 
 # ↓ Y-pass threshold control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
-info02.grid(row=0, column=4)
+info_threshold_y = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
+info_threshold_y.grid(row=0, column=4)
 
 ini_threshold_y = IntVar(value=8)
 """Vertical filtering threshold value."""
-spin02 = Spinbox(
+spin_y = Spinbox(
     frame_top,
     from_=0,
     to=255,
-    increment=1,
+    increment=threshold_increment,
     textvariable=ini_threshold_y,
     state='disabled',
     width=3,
@@ -836,12 +847,12 @@ spin02 = Spinbox(
     validatecommand=(validate_entry, '%P'),
 )
 """Vertical filtering threshold control."""
-spin02.grid(row=0, column=5)
+spin_y.grid(row=0, column=5)
 
 # ↓ "Wrap around" control
 ini_wraparound = BooleanVar(value=False)
 """Whether to process image wrap-around."""
-check01 = Checkbutton(
+check_wraparound = Checkbutton(
     frame_top,
     text='Wrap around',
     font=('helvetica', 9),
@@ -853,12 +864,12 @@ check01 = Checkbutton(
     activebackground=butt['activebackground'],
 )
 """Control whether to process image wrap-around."""
-check01.grid(row=1, column=1, sticky='ws')
+check_wraparound.grid(row=1, column=1, sticky='ws')
 
 # ↓ "Keep alpha" control
 ini_keep_alpha = BooleanVar(value=False)
 """Whether to copy source image alpha to result."""
-check02 = Checkbutton(
+check_keep_alpha = Checkbutton(
     frame_top,
     text='Keep alpha',
     font=('helvetica', 9),
@@ -870,7 +881,7 @@ check02 = Checkbutton(
     activebackground=butt['activebackground'],
 )
 """Control whether to copy source image alpha to result."""
-check02.grid(row=1, column=3, columnspan=3, sticky='ws')
+check_keep_alpha.grid(row=1, column=3, columnspan=3, sticky='ws')
 
 # ↓ Filter start
 butt_filter = Button(
@@ -932,6 +943,7 @@ zanyato_ = canvas.create_window(
     anchor='nw',
 )
 """Create/config canvas in main label."""
+
 canvas.config(
     width=zanyato.winfo_reqwidth(),
     height=zanyato.winfo_reqheight(),
@@ -951,9 +963,9 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
-# ↓ Spinboxes be cut off global evens and bound to spinbox events
-transparent_controls = (spin01, spin02)
-"""Controls to be uncontrolled by global evens."""
+# ↓ Spinboxes to be cut off global events and bound to spinbox events
+transparent_controls = (spin_x, spin_y)
+"""Controls to be uncontrolled by global events."""
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │
@@ -978,13 +990,13 @@ sortir.bind_all('<Control-Q>', DisMiss)
 sortir.bind_all('<Control-w>', DisMiss)
 sortir.bind_all('<Control-W>', DisMiss)
 
-# ↓ Center window horizontally, +64 vertically
-sortir.update()
-# print(sortir.winfo_width(), sortir.winfo_height())
+sortir.update()  # Make Tkinter build GUI to make it calculate requested sizes.
+
 # ↓ Readopting minsize
 UIFit()
 # ↓ Setting maxsize to fit 90% of screen
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
+# ↓ Center window horizontally, +64 vertically
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
 
 sortir.mainloop()

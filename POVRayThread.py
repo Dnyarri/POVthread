@@ -57,7 +57,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.32.22.8'  # 'POV-Ray Thread' 22 Aug 2026, export modules v. 1
+__version__ = '1.33.1.7'  # 'POV-Ray Thread' 1 Sep 2026, export modules v. 1
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -89,7 +89,7 @@ def DisMiss(event=None) -> None:
 def ShowMenu(event) -> None:
     """Pop menu up (or sort of drop it down)."""
 
-    menu02.post(event.x_root, event.y_root)
+    menu_file.post(event.x_root, event.y_root)
 
 
 def ShowInfo(event=None) -> None:
@@ -306,10 +306,10 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<Return>', RunFilter)
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
-    menu02.entryconfig('Image Info...', state='normal')
+    menu_file.entryconfig('Image Info...', state='normal')
     # ↓ Enabling 'Export...'
-    menu02.entryconfig('Export Linen...', state='normal')
-    menu02.entryconfig('Export Stitch...', state='normal')
+    menu_file.entryconfig('Export Linen...', state='normal')
+    menu_file.entryconfig('Export Stitch...', state='normal')
 
     # ↓ Enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
@@ -321,15 +321,15 @@ def GetSource(event=None) -> None:
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
     # ↓ Spinbox mouseovers
-    spin01.bind('<Enter>', lambda event=None: spin01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
-    spin01.bind('<Leave>', lambda event=None: spin01.config(foreground=butt['foreground'], background='white'))
-    spin02.bind('<Enter>', lambda event=None: spin02.config(foreground=butt['activeforeground'], background=butt['activebackground']))
-    spin02.bind('<Leave>', lambda event=None: spin02.config(foreground=butt['foreground'], background='white'))
+    spin_x.bind('<Enter>', lambda event=None: spin_x.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    spin_x.bind('<Leave>', lambda event=None: spin_x.config(foreground=butt['foreground'], background='white'))
+    spin_y.bind('<Enter>', lambda event=None: spin_y.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    spin_y.bind('<Leave>', lambda event=None: spin_y.config(foreground=butt['foreground'], background='white'))
     # ↓ Spinbox scroll
-    spin01.unbind('<MouseWheel>')
-    spin01.bind('<MouseWheel>', incWheel)
-    spin02.unbind('<MouseWheel>')
-    spin02.bind('<MouseWheel>', incWheel)
+    spin_x.unbind('<MouseWheel>')
+    spin_x.bind('<MouseWheel>', incWheel)
+    spin_y.unbind('<MouseWheel>')
+    spin_y.bind('<MouseWheel>', incWheel)
     UINormal()
     UIFit()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
@@ -356,8 +356,8 @@ def RunFilter(event=None) -> None:
         ini_threshold_y.set(0)
 
     # ↓ Now .get() filtering parameters
-    threshold_x = maxcolors * int(spin01.get()) // 255  # Rescaling for 16-bit
-    threshold_y = maxcolors * int(spin02.get()) // 255
+    threshold_x = maxcolors * ini_threshold_x.get() // 255  # Rescaling for 16-bit
+    threshold_y = maxcolors * ini_threshold_y.get() // 255
 
     UIBusy()
 
@@ -520,27 +520,34 @@ def valiDig(new_value):
 def incWheel(event) -> None:
     """Increment or decrement spinboxes by mouse wheel."""
 
-    if event.widget == spin01:
+    if event.widget == spin_x:
         if event.delta < 0:
-            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - 1)))
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() - threshold_increment)))
         if event.delta > 0:
-            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + 1)))
-    if event.widget == spin02:
+            ini_threshold_x.set(min(255, max(0, ini_threshold_x.get() + threshold_increment)))
+    if event.widget == spin_y:
         if event.delta < 0:
-            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - 1)))
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() - threshold_increment)))
         if event.delta > 0:
-            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + 1)))
+            ini_threshold_y.set(min(255, max(0, ini_threshold_y.get() + threshold_increment)))
 
 
-""" ╔═══════════╗
-    ║ Main body ║
-    ╚═══════════╝ """
-# ↓ Initializing
-sourcefilename = ''
-zoom_factor = 0
-view_src = True
+""" ╒══════════════╕
+    │ Initializing │
+    ╰──────────────╯ """
 product_name = 'POV-Ray Thread'
+"""Program name."""
+sourcefilename = ''
+"""Name of file to be opened."""
+zoom_factor = 0
+"""Current zoom. Midpoint value 0 correspond to 1:1 zoom."""
+view_src = True
+"""Whether source image should be shown rather than the result."""
 minizoom, maxizoom = (-4, 4)  # Zoom from 1:5 to 5:1
+"""`minizoom` is a maximal zoom out + 1 (image looks `mini`),
+   `maxizoom` is a maximal zoom in + 1 (image looks `maxi`)."""
+threshold_increment = 1
+"""Threshold increment for incWheel() and spinboxes."""
 
 some_help = (
     'Preview area:',
@@ -555,9 +562,15 @@ some_help = (
     '  <Enter> to execute filter,',
     '  <Click> or <Space> to switch source/result view.',
 )
+"""Help list(str) to be used for both main window and F1."""
 help_str = '\n'.join(some_help)
+"""Help str to be used for both main window and F1."""
 
+""" ╔═══════════╗
+    ║ Main body ║
+    ╚═══════════╝ """
 sortir = Tk()
+"""Main dialog window."""
 sortir.iconphoto(True, PhotoImage(data=b''.join(('P6\n3 16\n255\n'.encode(encoding='ascii'), randbytes(3 * 16 * 3)))))
 sortir.title(product_name)
 
@@ -575,18 +588,28 @@ butt = {
     'activeforeground': 'dark blue',
     'activebackground': '#E5F1FB',
 }
+"""Buttons properties dictionary."""
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 
-info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
+info_string = Label(
+    sortir,
+    text=info_normal['txt'],
+    font=('courier', 7),
+    foreground=info_normal['fg'],
+    background=info_normal['bg'],
+    relief='groove',
+)
+"""Info text label below main image, regularly updated."""
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
+"""Frame containing controls."""
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 
 # ↓ File menu
@@ -604,38 +627,41 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
+"""File menu button."""
 butt_file.pack(side='left', padx=(0, 10), pady=0, fill='both')
 
-menu02 = Menu(butt_file, tearoff=False)  # "File" menu
-menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
-menu02.add_separator()
-menu02.add_command(label='Export Linen...', state='disabled', command=SaveAsLinen)
-menu02.add_command(label='Export Stitch...', state='disabled', command=SaveAsStitch)
-menu02.add_separator()
-menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
-menu02.add_separator()
-menu02.add_command(label='Help...', accelerator='F1', state='normal', command=ShowHelp)
-menu02.add_separator()
-menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
+menu_file = Menu(butt_file, tearoff=False)
+"""File menu."""
+menu_file.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
+menu_file.add_separator()
+menu_file.add_command(label='Export Linen...', state='disabled', command=SaveAsLinen)
+menu_file.add_command(label='Export Stitch...', state='disabled', command=SaveAsStitch)
+menu_file.add_separator()
+menu_file.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
+menu_file.add_separator()
+menu_file.add_command(label='Help...', accelerator='F1', state='normal', command=ShowHelp)
+menu_file.add_separator()
+menu_file.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
-butt_file['menu'] = menu02
+butt_file['menu'] = menu_file  # Attach menu to menu button
 
 butt_file.focus_set()  # Setting focus to "File..."
 
 # ↓ Filter section begins
-info00 = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
-info00.pack(side='left', padx=(0, 4), pady=0, fill='x')
+info_threshold = Label(frame_top, text='Filtering \nThreshold:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
+info_threshold.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ X-pass threshold control
-info01 = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
-info01.pack(side='left', padx=0, pady=0, fill='x')
+info_threshold_x = Label(frame_top, text='X:', font=('helvetica', 10), state='disabled')
+info_threshold_x.pack(side='left', padx=0, pady=0, fill='x')
 
 ini_threshold_x = IntVar(value=16)
-spin01 = Spinbox(
+"""Horizontal filtering threshold value."""
+spin_x = Spinbox(
     frame_top,
     from_=0,
     to=255,
-    increment=1,
+    increment=threshold_increment,
     textvariable=ini_threshold_x,
     state='disabled',
     width=3,
@@ -643,18 +669,20 @@ spin01 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-spin01.pack(side='left', padx=(0, 4), pady=0, fill='x')
+"""Horizontal filtering threshold control."""
+spin_x.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Y-pass threshold control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
-info02.pack(side='left', padx=0, pady=0, fill='both')
+info_threshold_y = Label(frame_top, text='Y:', font=('helvetica', 10), state='disabled')
+info_threshold_y.pack(side='left', padx=0, pady=0, fill='both')
 
 ini_threshold_y = IntVar(value=8)
-spin02 = Spinbox(
+"""Vertical filtering threshold value."""
+spin_y = Spinbox(
     frame_top,
     from_=0,
     to=255,
-    increment=1,
+    increment=threshold_increment,
     textvariable=ini_threshold_y,
     state='disabled',
     width=3,
@@ -662,7 +690,8 @@ spin02 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-spin02.pack(side='left', padx=(0, 4), pady=0, fill='x')
+"""Vertical filtering threshold control."""
+spin_y.pack(side='left', padx=(0, 4), pady=0, fill='x')
 
 # ↓ Filter start
 butt_filter = Button(
@@ -680,12 +709,14 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
+"""Filter image button."""
 butt_filter.pack(side='left', padx=0, pady=0, fill='both')
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
     └─────────────────────────────-┘ """
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
+"""Frame containing main label (image preview) and zoom control subframe."""
 frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
@@ -696,6 +727,7 @@ canvas = Canvas(
     # highlightbackground='green',  # external border
     # highlightcolor='yellow',  # external border with opened image
 )
+"""Canvas containing preview."""
 canvas.pack()
 
 zanyato = Label(
@@ -709,6 +741,7 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
+"""Main label containing canvas containing preview."""
 zanyato.pack(side='top')
 
 zanyato_ = canvas.create_window(
@@ -719,6 +752,8 @@ zanyato_ = canvas.create_window(
     height=zanyato.winfo_reqheight(),
     anchor='nw',
 )
+"""Create/config canvas in main label."""
+
 canvas.config(
     width=zanyato.winfo_reqwidth(),
     height=zanyato.winfo_reqheight(),
@@ -726,6 +761,7 @@ canvas.config(
 )
 
 frame_zoom = Frame(frame_preview, borderwidth=2, relief='groove')
+"""Zoom control subframe."""
 frame_zoom.pack(side='bottom')
 
 butt_plus = Button(frame_zoom, text='+', font=('courier', 8), width=2, cursor='arrow', state='disabled', borderwidth=1, command=zoomIn)
@@ -737,8 +773,9 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
-# ↓ Spinboxes be cut off global evens and bound to spinbox events
-transparent_controls = (spin01, spin02)
+# ↓ Spinboxes to be cut off global events and bound to spinbox events
+transparent_controls = (spin_x, spin_y)
+"""Controls to be uncontrolled by global events."""
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │
@@ -759,13 +796,13 @@ sortir.bind_all('<Control-Q>', DisMiss)
 sortir.bind_all('<Control-w>', DisMiss)
 sortir.bind_all('<Control-W>', DisMiss)
 
-# ↓ Center window horizontally, +64 vertically
 sortir.update()
-# print(sortir.winfo_width(), sortir.winfo_height())
+
 # ↓ Readopting minsize
 UIFit()
 # ↓ Setting maxsize to fit 90% of screen
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
+# ↓ Center window horizontally, +64 vertically
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
 
 sortir.mainloop()
